@@ -1,2 +1,5 @@
 # secure-coding-ai-chatbot
-ai chatbot to help learn safe coding and detect vulnerabilities
+basically this aims to build an ai chatbot that makes learning entertaining and tailored to you
+
+
+
