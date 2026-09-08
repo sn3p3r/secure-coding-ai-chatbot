@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Login | Cyber Academy</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body class="login-page">
+
+    <main class="login-container">
+
+        <div class="login-box">
+
+            <div class="login-brand">
+                CYBER ACADEMY
+            </div>
+
+            <form
+                method="POST"
+                action="/login"
+                class="login-form"
+            >
+
+                <!-- USERNAME -->
+                <div class="login-field">
+
+                    <div
+                        id="username-prompt"
+                        class="typing-line"
+                    ></div>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        autocomplete="username"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- PASSWORD -->
+                <div class="login-field">
+
+                    <div
+                        id="password-prompt"
+                        class="typing-line"
+                    ></div>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                {% if error %}
+                    <p class="login-error">
+                        {{ error }}
+                    </p>
+                {% endif %}
+
+
+                <button
+                    type="submit"
+                    class="login-submit"
+                >
+                    LOGIN
+                </button>
+
+            </form>
+
+
+            <div class="login-bottom">
+
+                <span>New here?</span>
+
+                <a href="/signup">
+                    SIGN UP
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script>
+        async function typeText(element, text, speed = 70) {
+
+            for (let i = 0; i < text.length; i++) {
+
+                element.textContent =
+                    text.substring(0, i + 1);
+
+                await new Promise(resolve => {
+                    setTimeout(resolve, speed);
+                });
+            }
+        }
+
+
+        async function startTyping() {
+
+            const usernamePrompt =
+                document.getElementById("username-prompt");
+
+            const passwordPrompt =
+                document.getElementById("password-prompt");
+
+            await typeText(
+                usernamePrompt,
+                "USERNAME:"
+            );
+
+            await typeText(
+                passwordPrompt,
+                "PASSWORD:"
+            );
+
+            document.getElementById("username").focus();
+        }
+
+
+        startTyping();
+    </script>
+
+</body>
+
+</html>

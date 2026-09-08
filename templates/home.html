@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cyber Academy</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent">00:00:00</span>
+        </div>
+
+        <a href="/profile" class="profile-button">
+            <span class="profile-picture">
+                {{ username[0]|upper }}
+            </span>
+            <span>{{ username|upper }}</span>
+        </a>
+
+    </header>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-menu">
+
+        <section class="main-header">
+
+            <p class="academy-name">CYBER ACADEMY</p>
+
+            <h1>LEARN THROUGH GAMING</h1>
+
+            <p class="subtitle">
+                Learn cybersecurity, Python, internet basics,
+                and secure coding through a 2D story game.
+            </p>
+
+        </section>
+
+
+        <!-- MAIN ACTIONS -->
+        <section class="main-actions">
+
+            <a href="/game" class="large-button">
+                CONTINUE GAME
+            </a>
+
+            <div class="secondary-actions">
+
+                <a href="#courses" class="outline-button">
+                    CHOOSE A COURSE
+                </a>
+
+                <a href="/quiz" class="outline-button">
+                    TAKE THE QUIZ
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- COURSE SECTION -->
+        <section id="courses" class="courses-section">
+
+            <div class="section-heading">
+                <p class="section-label">YOUR LEARNING PATH</p>
+            </div>
+
+
+            <div class="course-grid">
+
+                {% for course in courses %}
+                {% set p = progress[course.slug] %}
+
+                <div class="course-card">
+
+                    <div class="course-top">
+                        <span class="course-number">{{ course.number }}</span>
+                        <span class="course-status">
+                            {% if p.finished %}COMPLETE{% elif p.levels_done %}IN PROGRESS{% else %}NOT STARTED{% endif %}
+                            {% if recommended == course.slug %} · RECOMMENDED{% endif %}
+                        </span>
+                    </div>
+
+                    <h2>{{ course.title|upper }}</h2>
+
+                    <p>
+                        {{ course.description }}
+                    </p>
+
+                    <div class="course-progress">
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: {{ p.percent }}%;"></div>
+                        </div>
+
+                        <span>{{ p.percent }}%</span>
+                    </div>
+
+                    <a href="{{ url_for('course_home', course_slug=course.slug) }}" class="course-button">
+                        {% if p.levels_done %}CONTINUE · LEVEL {{ '%02d' % p.current }}{% else %}VIEW COURSE{% endif %}
+                    </a>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    {% include "_mentor.html" %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+</html>

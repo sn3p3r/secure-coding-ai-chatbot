@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Course Finder | Cyber Academy</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <a href="/" class="back-link">
+            ← CYBER ACADEMY
+        </a>
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent">00:00:00</span>
+        </div>
+
+        <a href="/profile" class="profile-button">
+            <span class="profile-picture">
+                {{ session.get("username", "U")[0]|upper }}
+            </span>
+
+            <span>PROFILE</span>
+        </a>
+
+    </header>
+
+
+    <main class="quiz-page">
+
+        <section class="quiz-intro">
+
+            <p class="academy-name">
+                OPTIONAL COURSE FINDER
+            </p>
+
+            <h1>
+                FIND YOUR STARTING PATH
+            </h1>
+
+            <p>
+                Answer a few questions and we'll recommend
+                the course that best matches your interests.
+            </p>
+
+            <div class="quiz-note">
+                This quiz is optional. You can skip it and choose
+                any course yourself.
+            </div>
+
+        </section>
+
+
+        <section class="quiz-card">
+
+            <form id="quiz-form">
+
+                <!-- QUESTION 1 -->
+                <div class="question">
+                    <span class="question-number">01</span>
+
+                    <h2>
+                        Which sounds most interesting?
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q1"
+                            value="python"
+                            required
+                        >
+                        Building a program from scratch.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q1"
+                            value="cybersecurity"
+                        >
+                        Protecting a system from an attack.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q1"
+                            value="internet"
+                        >
+                        Figuring out how data travels across the internet.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q1"
+                            value="secure"
+                        >
+                        Finding security problems in code.
+                    </label>
+                </div>
+
+
+                <!-- QUESTION 2 -->
+                <div class="question">
+                    <span class="question-number">02</span>
+
+                    <h2>
+                        You find a broken application. What do you want to do first?
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q2"
+                            value="python"
+                        >
+                        Understand how the program works.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q2"
+                            value="cybersecurity"
+                        >
+                        Figure out what threat caused the problem.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q2"
+                            value="internet"
+                        >
+                        See how the application communicates with other systems.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q2"
+                            value="secure"
+                        >
+                        Look for vulnerable code.
+                    </label>
+                </div>
+
+
+                <!-- QUESTION 3 -->
+                <div class="question">
+                    <span class="question-number">03</span>
+
+                    <h2>
+                        Which challenge sounds coolest?
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q3"
+                            value="python"
+                        >
+                        Write a script that solves a puzzle.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q3"
+                            value="cybersecurity"
+                        >
+                        Defend a computer from incoming attacks.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q3"
+                            value="internet"
+                        >
+                        Trace a packet through a network.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q3"
+                            value="secure"
+                        >
+                        Hunt down a vulnerability.
+                    </label>
+                </div>
+
+
+                <!-- QUESTION 4 -->
+                <div class="question">
+                    <span class="question-number">04</span>
+
+                    <h2>
+                        What sounds most satisfying?
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q4"
+                            value="python"
+                        >
+                        Finally getting my code to work.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q4"
+                            value="cybersecurity"
+                        >
+                        Stopping an attack.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q4"
+                            value="internet"
+                        >
+                        Understanding how everything connects.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q4"
+                            value="secure"
+                        >
+                        Finding a security flaw nobody noticed.
+                    </label>
+                </div>
+
+
+                <!-- QUESTION 5 -->
+                <div class="question">
+                    <span class="question-number">05</span>
+
+                    <h2>
+                        Which topic sounds most interesting?
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q5"
+                            value="python"
+                        >
+                        Variables, loops, and functions.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q5"
+                            value="cybersecurity"
+                        >
+                        Threats, authentication, and defenses.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q5"
+                            value="internet"
+                        >
+                        IP addresses, DNS, and packets.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q5"
+                            value="secure"
+                        >
+                        Vulnerabilities and secure coding.
+                    </label>
+                </div>
+
+
+                <!-- QUESTION 6 -->
+                <div class="question">
+                    <span class="question-number">06</span>
+
+                    <h2>
+                        You have an AI assistant. What would you most want it to help with?
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q6"
+                            value="python"
+                        >
+                        Explain how to write a program.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q6"
+                            value="cybersecurity"
+                        >
+                        Explain how to defend a system.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q6"
+                            value="internet"
+                        >
+                        Explain how networking works.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q6"
+                            value="secure"
+                        >
+                        Review my code for security weaknesses.
+                    </label>
+                </div>
+
+
+                <!-- QUESTION 7 -->
+                <div class="question">
+                    <span class="question-number">07</span>
+
+                    <h2>
+                        Pick the problem you'd rather solve.
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q7"
+                            value="python"
+                        >
+                        A program has a logic bug.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q7"
+                            value="cybersecurity"
+                        >
+                        A machine is under attack.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q7"
+                            value="internet"
+                        >
+                        Two computers can't communicate.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q7"
+                            value="secure"
+                        >
+                        A program contains a vulnerability.
+                    </label>
+                </div>
+
+
+                <!-- QUESTION 8 -->
+                <div class="question">
+                    <span class="question-number">08</span>
+
+                    <h2>
+                        Which role sounds most like you?
+                    </h2>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q8"
+                            value="python"
+                        >
+                        Builder.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q8"
+                            value="cybersecurity"
+                        >
+                        Defender.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q8"
+                            value="internet"
+                        >
+                        Explorer.
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="q8"
+                            value="secure"
+                        >
+                        Investigator.
+                    </label>
+                </div>
+
+
+                <div class="quiz-actions">
+
+                    <button
+                        type="submit"
+                        class="large-button"
+                    >
+                        SHOW MY RECOMMENDATION
+                    </button>
+
+                    <a
+                        href="/"
+                        class="outline-button"
+                    >
+                        SKIP / RETURN HOME
+                    </a>
+
+                </div>
+
+            </form>
+
+
+            <!-- RESULT -->
+            <div
+                id="quiz-result"
+                class="quiz-result hidden"
+            >
+
+                <p class="academy-name">
+                    RECOMMENDED STARTING POINT
+                </p>
+
+                <h2 id="result-title"></h2>
+
+                <p id="result-text"></p>
+
+                <div class="result-actions">
+
+                    <a href="/" class="large-button">
+                        RETURN HOME
+                    </a>
+
+                    <a href="/profile" class="outline-button">
+                        VIEW PROFILE
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+</html>

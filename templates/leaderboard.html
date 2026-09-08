@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Leaderboard | Cyber Academy</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <a href="/" class="back-link">
+            ← CYBER ACADEMY
+        </a>
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent">00:00:00</span>
+        </div>
+
+        <a href="/profile" class="profile-button">
+            <span class="profile-picture">
+                {{ username[0]|upper }}
+            </span>
+            <span>{{ username|upper }}</span>
+        </a>
+
+    </header>
+
+
+    <main class="leaderboard-page">
+
+        <section class="quiz-intro">
+            <p class="academy-name">ACADEMY RANKINGS</p>
+            <h1>LEADERBOARD</h1>
+            <p>Ranked by levels completed, then by the fastest total time. The clock runs from the moment you gain control until the terminal accepts your answer.</p>
+        </section>
+
+        <div class="board-grid">
+
+            {% for board in boards %}
+                <section class="board-card">
+
+                    <div class="course-top">
+                        <span class="course-number">{{ board.course.number }}</span>
+                        <span class="course-status">{{ board.course.zone|upper }}</span>
+                    </div>
+
+                    <h2>{{ board.course.title|upper }}</h2>
+
+                    {% if board.rows %}
+                        <table class="board-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>RECRUIT</th>
+                                    <th>LEVELS</th>
+                                    <th>TIME</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in board.rows %}
+                                    <tr class="{% if row.username == username %}board-me{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ row.username }}</td>
+                                        <td>{{ row.levels_done }} / {{ board.course.levels|length }}</td>
+                                        <td>{{ '%02d:%02d' % (row.total_seconds // 60, row.total_seconds % 60) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="board-empty">No recruit has finished a level here yet.</p>
+                    {% endif %}
+
+                    <a class="course-button" href="{{ url_for('course_home', course_slug=board.course.slug) }}">ENTER {{ board.course.zone|upper }}</a>
+
+                </section>
+            {% endfor %}
+
+        </div>
+
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+
+</html>

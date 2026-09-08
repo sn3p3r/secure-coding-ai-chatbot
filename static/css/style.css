@@ -1,0 +1,3289 @@
+/* =========================================================
+   GLOBAL RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+
+    background: #0b0b0b;
+    color: #eeeeee;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+a,
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+
+/* =========================================================
+   GLOBAL TEXT
+========================================================= */
+
+.academy-name {
+    margin: 0;
+
+    color: #8a8a8a;
+
+    font-size: 12px;
+
+    letter-spacing: 3px;
+
+    text-transform: uppercase;
+}
+
+.section-label {
+    margin: 0;
+
+    color: #8a8a8a;
+
+    font-size: 12px;
+
+    letter-spacing: 2.5px;
+
+    text-transform: uppercase;
+}
+
+.subtitle {
+    color: #bdbdbd;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.top-bar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 70px;
+
+    padding: 0 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: #080808;
+
+    border-bottom: 1px solid #303030;
+
+    z-index: 1000;
+}
+
+.time-display {
+    color: #b0b0b0;
+
+    font-size: 13px;
+
+    letter-spacing: 1px;
+}
+
+.profile-button {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    color: #eeeeee;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    letter-spacing: 1px;
+}
+
+.profile-button:hover {
+    color: #ffffff;
+}
+
+.profile-picture {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #555555;
+
+    border-radius: 50%;
+
+    background: #171717;
+
+    color: #eeeeee;
+
+    font-size: 13px;
+}
+
+.back-link {
+    color: #ababab;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    letter-spacing: 1.5px;
+}
+
+.back-link:hover {
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.large-button,
+.outline-button,
+.text-button,
+.course-button,
+.login-submit,
+.mentor-floating-button,
+.mentor-close,
+#mentor-send {
+    cursor: pointer;
+}
+
+.large-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 54px;
+
+    padding: 0 24px;
+
+    color: #111111;
+
+    background: #eeeeee;
+
+    border: 1px solid #eeeeee;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    letter-spacing: 1px;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.large-button:hover {
+    background: #d8d8d8;
+
+    border-color: #d8d8d8;
+}
+
+.outline-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 50px;
+
+    padding: 0 20px;
+
+    color: #e5e5e5;
+
+    background: #151515;
+
+    border: 1px solid #505050;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    letter-spacing: 1px;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.outline-button:hover {
+    background: #1d1d1d;
+
+    border-color: #707070;
+}
+
+.text-button {
+    color: #9b9b9b;
+
+    text-decoration: none;
+
+    border: none;
+
+    background: transparent;
+
+    font-size: 12px;
+
+    letter-spacing: 1px;
+}
+
+.text-button:hover {
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   HOME
+========================================================= */
+
+.main-menu {
+    width: min(1150px, 90%);
+
+    margin: 0 auto;
+
+    padding-top: 145px;
+    padding-bottom: 110px;
+}
+
+.main-header {
+    max-width: 900px;
+
+    margin: 0 auto;
+
+    text-align: center;
+}
+
+.main-header h1 {
+    margin: 18px 0 22px;
+
+    color: #eeeeee;
+
+    font-size: clamp(46px, 7vw, 82px);
+
+    line-height: 0.98;
+
+    letter-spacing: -3px;
+
+    font-weight: 700;
+}
+
+.main-header .subtitle {
+    max-width: 680px;
+
+    margin: 0 auto;
+
+    font-size: 18px;
+}
+
+.main-actions {
+    max-width: 560px;
+
+    margin: 55px auto 105px;
+
+    text-align: center;
+}
+
+.large-button {
+    width: 100%;
+}
+
+.secondary-actions {
+    display: flex;
+
+    gap: 12px;
+
+    margin-top: 12px;
+}
+
+.secondary-actions .outline-button {
+    flex: 1;
+}
+
+
+/* =========================================================
+   COURSES
+========================================================= */
+
+.courses-section {
+    padding-top: 15px;
+}
+
+.section-heading {
+    margin-bottom: 28px;
+}
+
+.course-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 16px;
+}
+
+.course-card {
+    min-height: 320px;
+
+    padding: 30px;
+
+    background: #121212;
+
+    border: 1px solid #303030;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-3px);
+
+    background: #161616;
+
+    border-color: #555555;
+}
+
+.course-top {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+}
+
+.course-number {
+    color: #808080;
+
+    font-size: 14px;
+}
+
+.course-status {
+    color: #8e8e8e;
+
+    font-size: 10px;
+
+    letter-spacing: 1.5px;
+}
+
+.course-card h2 {
+    margin: 48px 0 16px;
+
+    color: #ededed;
+
+    font-size: 29px;
+
+    line-height: 1.1;
+
+    letter-spacing: -1px;
+}
+
+.course-card p {
+    min-height: 75px;
+
+    margin: 0;
+
+    color: #bdbdbd;
+
+    font-size: 15px;
+
+    line-height: 1.65;
+}
+
+.course-progress {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin: 25px 0;
+}
+
+.progress-track {
+    flex: 1;
+
+    height: 6px;
+
+    background: #2d2d2d;
+}
+
+.progress-fill {
+    height: 100%;
+
+    background: #d7d7d7;
+}
+
+.course-progress span {
+    color: #a5a5a5;
+
+    font-size: 12px;
+}
+
+.course-button {
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    color: #eeeeee;
+
+    background: #171717;
+
+    border: 1px solid #505050;
+
+    font-size: 11px;
+
+    letter-spacing: 1px;
+}
+
+.course-button:hover {
+    background: #202020;
+
+    border-color: #707070;
+}
+
+a.course-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    text-decoration: none;
+}
+
+.profile-course-link {
+    color: inherit;
+
+    text-decoration: none;
+}
+
+.profile-course-link:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   LOGIN / SIGNUP
+========================================================= */
+
+.login-page {
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #090909;
+}
+
+.login-container {
+    width: 100%;
+
+    display: flex;
+
+    justify-content: center;
+
+    padding: 30px;
+}
+
+.login-box {
+    width: min(340px, 90vw);
+
+    min-height: 500px;
+
+    padding: 40px 32px 28px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    background: #101010;
+
+    border: 1px solid #333333;
+
+    box-shadow:
+        0 20px 70px rgba(0, 0, 0, 0.55);
+}
+
+.signup-box {
+    min-height: auto;
+}
+
+.login-brand {
+    margin-bottom: 65px;
+
+    color: #8c8c8c;
+
+    font-size: 11px;
+
+    letter-spacing: 3px;
+}
+
+.login-form {
+    flex: 1;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+}
+
+.login-field {
+    margin-bottom: 28px;
+}
+
+.typing-line {
+    min-height: 23px;
+
+    margin-bottom: 7px;
+
+    color: #eeeeee;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+
+    font-size: 15px;
+
+    letter-spacing: 1px;
+}
+
+.login-field input,
+.signup-form input {
+    width: 100%;
+
+    padding: 11px 0;
+
+    color: #eeeeee;
+
+    background: transparent;
+
+    border: none;
+
+    border-bottom: 1px solid #4a4a4a;
+
+    outline: none;
+
+    font-size: 15px;
+}
+
+.login-field input:focus,
+.signup-form input:focus {
+    border-bottom-color: #dddddd;
+}
+
+.login-error {
+    margin: 0 0 20px;
+
+    color: #bbbbbb;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+.login-submit {
+    width: 100%;
+
+    margin-top: 5px;
+
+    min-height: 50px;
+
+    padding: 0 16px;
+
+    color: #111111;
+
+    background: #eeeeee;
+
+    border: 1px solid #eeeeee;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    letter-spacing: 1px;
+}
+
+.login-submit:hover {
+    background: #d7d7d7;
+}
+
+.login-submit:disabled {
+    opacity: 0.35;
+
+    cursor: not-allowed;
+}
+
+.login-bottom {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding-top: 22px;
+
+    border-top: 1px solid #292929;
+
+    color: #808080;
+
+    font-size: 12px;
+}
+
+.login-bottom a {
+    color: #dddddd;
+
+    text-decoration: none;
+
+    letter-spacing: 1px;
+}
+
+.login-bottom a:hover {
+    color: #ffffff;
+}
+
+.signup-description {
+    margin-top: -42px;
+
+    margin-bottom: 35px;
+
+    color: #a8a8a8;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+.signup-form {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.signup-form label {
+    margin-top: 10px;
+
+    color: #919191;
+
+    font-size: 11px;
+
+    letter-spacing: 1.7px;
+}
+
+.password-requirements {
+    margin: 8px 0 20px;
+
+    padding: 16px;
+
+    background: #0a0a0a;
+
+    border: 1px solid #292929;
+}
+
+.requirements-title {
+    margin: 0 0 12px;
+
+    color: #858585;
+
+    font-size: 10px;
+
+    letter-spacing: 1.7px;
+}
+
+.requirement {
+    margin: 8px 0;
+
+    color: #999999;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+
+    font-size: 12px;
+}
+
+.requirement-good {
+    color: #ededed !important;
+}
+
+.password-strength {
+    margin-top: 15px;
+
+    padding-top: 12px;
+
+    border-top: 1px solid #262626;
+
+    color: #888888;
+
+    font-size: 11px;
+
+    letter-spacing: 1px;
+}
+
+.strength-good,
+.strength-excellent {
+    color: #ededed;
+}
+
+.strength-weak {
+    color: #888888;
+}
+
+.password-match {
+    min-height: 18px;
+
+    margin: -5px 0 12px;
+
+    color: #8c8c8c;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   QUIZ
+========================================================= */
+
+.quiz-page {
+    width: min(900px, 90%);
+
+    margin: 0 auto;
+
+    padding-top: 135px;
+
+    padding-bottom: 100px;
+}
+
+.quiz-intro {
+    max-width: 780px;
+
+    margin-bottom: 48px;
+}
+
+.quiz-intro h1 {
+    margin: 16px 0 20px;
+
+    color: #eeeeee;
+
+    font-size: clamp(42px, 7vw, 72px);
+
+    line-height: 0.98;
+
+    letter-spacing: -3px;
+}
+
+.quiz-intro > p:not(.academy-name) {
+    color: #bdbdbd;
+
+    font-size: 17px;
+
+    line-height: 1.7;
+}
+
+.quiz-note {
+    margin-top: 24px;
+
+    padding: 15px 17px;
+
+    color: #ababab;
+
+    background: #111111;
+
+    border-left: 2px solid #666666;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+.quiz-card {
+    padding: 0 38px;
+
+    background: #111111;
+
+    border: 1px solid #303030;
+}
+
+.question {
+    padding: 38px 0;
+
+    border-bottom: 1px solid #292929;
+}
+
+.question:last-of-type {
+    border-bottom: none;
+}
+
+.question-number {
+    display: block;
+
+    margin-bottom: 13px;
+
+    color: #777777;
+
+    font-size: 11px;
+
+    letter-spacing: 2px;
+}
+
+.question h2 {
+    margin: 0 0 22px;
+
+    color: #eeeeee;
+
+    font-size: 21px;
+
+    font-weight: 500;
+
+    line-height: 1.45;
+}
+
+.question label {
+    display: block;
+
+    padding: 15px 16px;
+
+    margin: 8px 0;
+
+    color: #bcbcbc;
+
+    background: #0b0b0b;
+
+    border: 1px solid #303030;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.question label:hover {
+    color: #eeeeee;
+
+    background: #161616;
+
+    border-color: #555555;
+}
+
+.question input {
+    margin-right: 10px;
+
+    accent-color: #dddddd;
+}
+
+.quiz-actions {
+    display: flex;
+
+    gap: 12px;
+
+    padding: 32px 0 38px;
+}
+
+.quiz-actions .large-button,
+.quiz-actions .outline-button {
+    flex: 1;
+}
+
+.quiz-result {
+    padding: 45px 0;
+
+    border-top: 1px solid #303030;
+}
+
+.quiz-result h2 {
+    margin: 12px 0 15px;
+
+    color: #eeeeee;
+
+    font-size: 42px;
+
+    letter-spacing: -1px;
+}
+
+.quiz-result > p:not(.academy-name) {
+    max-width: 600px;
+
+    color: #bcbcbc;
+
+    font-size: 16px;
+
+    line-height: 1.7;
+}
+
+.result-actions {
+    display: flex;
+
+    gap: 12px;
+
+    margin-top: 30px;
+}
+
+.result-actions .large-button,
+.result-actions .outline-button {
+    flex: 1;
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.profile-page {
+    width: min(1050px, 90%);
+
+    margin: 0 auto;
+
+    padding-top: 135px;
+
+    padding-bottom: 100px;
+}
+
+.profile-heading {
+    display: flex;
+
+    align-items: center;
+
+    gap: 25px;
+
+    padding-bottom: 55px;
+
+    border-bottom: 1px solid #303030;
+}
+
+.large-profile-picture {
+    width: 92px;
+    height: 92px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #555555;
+
+    border-radius: 50%;
+
+    background: #151515;
+
+    color: #eeeeee;
+
+    font-size: 30px;
+}
+
+.profile-heading h1 {
+    margin: 8px 0;
+
+    color: #eeeeee;
+
+    font-size: clamp(38px, 6vw, 60px);
+
+    line-height: 1;
+
+    letter-spacing: -2px;
+}
+
+.profile-description {
+    margin: 0;
+
+    color: #a9a9a9;
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   PROFILE STATS
+========================================================= */
+
+.stats-section {
+    padding-top: 55px;
+}
+
+.stats-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 12px;
+
+    margin-top: 22px;
+}
+
+.stat-card {
+    min-height: 155px;
+
+    padding: 24px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    background: #121212;
+
+    border: 1px solid #303030;
+}
+
+.stat-label {
+    color: #8f8f8f;
+
+    font-size: 10px;
+
+    letter-spacing: 1.5px;
+
+    line-height: 1.5;
+}
+
+.stat-number {
+    color: #eeeeee;
+
+    font-size: 32px;
+
+    font-weight: 400;
+
+    letter-spacing: -1px;
+}
+
+.small-stat {
+    font-size: 18px;
+
+    line-height: 1.3;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   PROFILE COURSES
+========================================================= */
+
+.profile-courses {
+    padding-top: 75px;
+}
+
+.profile-courses .courses-header {
+    display: flex;
+
+    align-items: end;
+    justify-content: space-between;
+
+    gap: 25px;
+
+    margin-bottom: 25px;
+}
+
+.profile-courses .courses-header h2 {
+    margin: 10px 0 0;
+
+    color: #eeeeee;
+
+    font-size: 34px;
+
+    font-weight: 500;
+
+    letter-spacing: -1px;
+}
+
+.profile-course {
+    padding: 28px 0;
+
+    border-top: 1px solid #292929;
+}
+
+.profile-course:last-child {
+    border-bottom: 1px solid #292929;
+}
+
+.profile-course-top {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 30px;
+
+    margin-bottom: 18px;
+}
+
+.profile-course h3 {
+    margin: 7px 0 0;
+
+    color: #eeeeee;
+
+    font-size: 22px;
+
+    font-weight: 500;
+}
+
+.course-percentage {
+    color: #ababab;
+
+    font-size: 13px;
+}
+
+.profile-progress-track {
+    width: 100%;
+
+    height: 6px;
+
+    background: #2d2d2d;
+}
+
+.profile-progress-fill {
+    height: 100%;
+
+    background: #d7d7d7;
+}
+
+.account-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 20px;
+
+    padding-top: 45px;
+}
+
+
+/* =========================================================
+   SECUREMENTOR
+========================================================= */
+
+.mentor-floating-button {
+    position: fixed;
+
+    right: 24px;
+    bottom: 24px;
+
+    padding: 14px 18px;
+
+    color: #111111;
+
+    background: #eeeeee;
+
+    border: 1px solid #eeeeee;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    letter-spacing: 1.5px;
+
+    z-index: 3000;
+
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.45);
+}
+
+.mentor-floating-button:hover {
+    background: #d7d7d7;
+}
+
+.mentor-panel {
+    position: fixed;
+
+    right: 24px;
+    bottom: 80px;
+
+    width: 390px;
+    max-width: calc(100vw - 30px);
+
+    height: 590px;
+    max-height: calc(100vh - 105px);
+
+    display: flex;
+
+    flex-direction: column;
+
+    background: #101010;
+
+    border: 1px solid #404040;
+
+    box-shadow:
+        0 20px 70px rgba(0, 0, 0, 0.8);
+
+    z-index: 2999;
+}
+
+.mentor-panel.hidden {
+    display: none;
+}
+
+.mentor-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 20px;
+
+    border-bottom: 1px solid #303030;
+}
+
+.mentor-label {
+    color: #858585;
+
+    font-size: 10px;
+
+    letter-spacing: 2px;
+}
+
+.mentor-header h2 {
+    margin: 7px 0 0;
+
+    color: #eeeeee;
+
+    font-size: 20px;
+
+    font-weight: 500;
+}
+
+.mentor-status {
+    margin-left: 10px;
+
+    padding: 2px 6px;
+
+    border: 1px solid #444444;
+
+    color: #9a9a9a;
+
+    font-size: 9px;
+
+    letter-spacing: 1.5px;
+}
+
+.mentor-online {
+    color: #4be07a;
+
+    border-color: #2f7a3e;
+}
+
+.mentor-offline {
+    color: #ff6b6b;
+
+    border-color: #7a2f2f;
+}
+
+.mentor-actions {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    padding: 12px 20px;
+
+    border-bottom: 1px solid #303030;
+
+    background: #0c0c0c;
+}
+
+.mentor-actions.hidden {
+    display: none;
+}
+
+.mentor-actions-label {
+    width: 100%;
+
+    color: #7a7a7a;
+
+    font-size: 9px;
+
+    letter-spacing: 1.5px;
+}
+
+.mentor-action {
+    padding: 8px 10px;
+
+    color: #e0e0e0;
+
+    background: #161616;
+
+    border: 1px solid #444444;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+.mentor-action:hover {
+    border-color: #ffffff;
+
+    color: #ffffff;
+}
+
+.mentor-close {
+    width: 34px;
+    height: 34px;
+
+    color: #aaaaaa;
+
+    background: #151515;
+
+    border: 1px solid #444444;
+
+    font-size: 20px;
+}
+
+.mentor-close:hover {
+    color: #ffffff;
+
+    border-color: #707070;
+}
+
+.mentor-messages {
+    flex: 1;
+
+    overflow-y: auto;
+
+    padding: 20px;
+}
+
+.mentor-message {
+    margin-bottom: 18px;
+
+    padding: 15px;
+
+    background: #171717;
+
+    border: 1px solid #303030;
+
+    color: #bbbbbb;
+
+    font-size: 14px;
+
+    line-height: 1.65;
+
+    white-space: pre-wrap;
+}
+
+.mentor-message strong {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #eeeeee;
+
+    font-size: 11px;
+
+    letter-spacing: 1px;
+}
+
+.mentor-user-message {
+    background: #202020;
+
+    border-color: #454545;
+
+    color: #d0d0d0;
+}
+
+.mentor-code-area {
+    padding: 15px 20px 0;
+}
+
+.mentor-code-area label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #888888;
+
+    font-size: 10px;
+
+    letter-spacing: 1.5px;
+}
+
+#mentor-code {
+    width: 100%;
+
+    height: 95px;
+
+    padding: 12px;
+
+    resize: vertical;
+
+    color: #eeeeee;
+
+    background: #080808;
+
+    border: 1px solid #363636;
+
+    outline: none;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+
+    font-size: 12px;
+}
+
+#mentor-code:focus {
+    border-color: #666666;
+}
+
+.mentor-input-area {
+    display: flex;
+
+    gap: 10px;
+
+    padding: 15px 20px 20px;
+}
+
+#mentor-question {
+    flex: 1;
+
+    height: 48px;
+
+    padding: 12px;
+
+    resize: none;
+
+    color: #eeeeee;
+
+    background: #080808;
+
+    border: 1px solid #363636;
+
+    outline: none;
+
+    font-size: 13px;
+}
+
+#mentor-question:focus {
+    border-color: #666666;
+}
+
+#mentor-send {
+    width: 65px;
+
+    color: #111111;
+
+    background: #eeeeee;
+
+    border: 1px solid #eeeeee;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    letter-spacing: 1px;
+}
+
+#mentor-send:hover {
+    background: #d7d7d7;
+}
+
+#mentor-send:disabled {
+    opacity: 0.4;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 850px) {
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profile-courses .courses-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .main-menu {
+        width: 92%;
+    }
+
+    .course-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .secondary-actions {
+        flex-direction: column;
+    }
+
+    .quiz-page,
+    .profile-page {
+        width: 92%;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .top-bar {
+        padding: 0 15px;
+    }
+
+    .back-link {
+        font-size: 10px;
+    }
+
+    .time-display {
+        font-size: 11px;
+    }
+
+    .profile-button {
+        font-size: 10px;
+    }
+
+    .quiz-card {
+        padding: 0 20px;
+    }
+
+    .quiz-actions,
+    .result-actions {
+        flex-direction: column;
+    }
+
+    .profile-heading {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mentor-floating-button {
+        right: 15px;
+        bottom: 15px;
+    }
+
+    .mentor-panel {
+        right: 15px;
+        bottom: 70px;
+
+        width: calc(100vw - 30px);
+    }
+}
+
+
+/* =========================================================
+   COURSE PAGE (sidebar + level + game window)
+========================================================= */
+
+.course-page {
+    width: min(1250px, 94%);
+
+    margin: 0 auto;
+
+    padding-top: 100px;
+    padding-bottom: 90px;
+}
+
+.course-frame {
+    display: grid;
+
+    grid-template-columns: 270px 1fr;
+
+    background: #0e0e0e;
+
+    border: 1px solid #303030;
+
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+}
+
+.course-sidebar {
+    padding: 28px 22px;
+
+    border-right: 1px solid #262626;
+
+    background: #0b0b0b;
+}
+
+.course-sidebar h2 {
+    margin: 10px 0 18px;
+
+    color: #eeeeee;
+
+    font-size: 26px;
+
+    letter-spacing: -1px;
+}
+
+.sidebar-label {
+    margin: 28px 0 10px;
+
+    color: #777777;
+
+    font-size: 10px;
+
+    letter-spacing: 2px;
+}
+
+.level-list {
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+}
+
+.level-item {
+    border-top: 1px solid #1f1f1f;
+}
+
+.level-item:last-child {
+    border-bottom: 1px solid #1f1f1f;
+}
+
+.level-link {
+    display: grid;
+
+    grid-template-columns: 30px 1fr auto;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 11px 6px;
+
+    color: #8a8a8a;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+a.level-link:hover {
+    color: #ffffff;
+
+    background: #141414;
+}
+
+.level-num {
+    color: #5d5d5d;
+
+    font-size: 11px;
+
+    letter-spacing: 1px;
+}
+
+.level-mark {
+    color: #6a6a6a;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+}
+
+.level-done .level-link {
+    color: #b5b5b5;
+}
+
+.level-done .level-mark {
+    color: #eeeeee;
+}
+
+.level-current .level-link {
+    color: #ffffff;
+
+    font-weight: 700;
+}
+
+.level-current .level-num,
+.level-current .level-mark {
+    color: #ffffff;
+}
+
+.level-viewing .level-link {
+    background: #151515;
+
+    border-left: 2px solid #eeeeee;
+}
+
+.level-locked .level-link {
+    color: #4d4d4d;
+
+    cursor: not-allowed;
+}
+
+.sidebar-actions {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-top: 28px;
+}
+
+.sidebar-actions .outline-button {
+    min-height: 44px;
+}
+
+.course-main {
+    padding: 28px 30px 34px;
+
+    min-width: 0;
+}
+
+.level-header {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+}
+
+.level-header h1 {
+    margin: 10px 0 8px;
+
+    color: #eeeeee;
+
+    font-size: clamp(26px, 3vw, 38px);
+
+    letter-spacing: -1px;
+
+    line-height: 1.05;
+}
+
+.level-objective {
+    margin: 0;
+
+    color: #b5b5b5;
+
+    font-size: 14px;
+}
+
+.level-concepts {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    justify-content: flex-end;
+
+    gap: 6px;
+
+    max-width: 260px;
+}
+
+.concept-tag {
+    padding: 5px 9px;
+
+    color: #a8a8a8;
+
+    background: #141414;
+
+    border: 1px solid #333333;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 11px;
+}
+
+.level-panels {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 14px;
+
+    margin-top: 18px;
+}
+
+.level-panel {
+    padding: 20px 22px;
+
+    background: #111111;
+
+    border: 1px solid #2a2a2a;
+
+    color: #bdbdbd;
+
+    font-size: 14px;
+
+    line-height: 1.65;
+}
+
+.level-panel p {
+    margin: 8px 0 14px;
+}
+
+.level-panel .section-label {
+    margin: 0;
+}
+
+.learn-list {
+    margin: 10px 0 12px;
+
+    padding-left: 18px;
+}
+
+.learn-list li {
+    margin: 6px 0;
+}
+
+.learn-example {
+    margin: 0;
+
+    padding: 12px 14px;
+
+    background: #080808;
+
+    border: 1px solid #2c2c2c;
+
+    color: #dcdcdc;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+
+    white-space: pre-wrap;
+
+    overflow-x: auto;
+}
+
+
+/* =========================================================
+   GAME WINDOW
+========================================================= */
+
+.game-window {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 5 / 3;
+
+    background: #000000;
+
+    border: 1px solid #3a3a3a;
+
+    overflow: hidden;
+
+    outline: none;
+}
+
+.game-window:focus {
+    border-color: #6a6a6a;
+}
+
+.game-window canvas {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.game-window:fullscreen {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+}
+
+.game-window:fullscreen canvas {
+    width: auto;
+    height: 100%;
+
+    max-width: 100%;
+
+    aspect-ratio: 5 / 3;
+
+    margin: 0 auto;
+}
+
+.game-locked {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #070707;
+}
+
+.game-hud {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 10px 14px;
+
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+
+    color: #dddddd;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 12px;
+
+    pointer-events: none;
+}
+
+.hud-label {
+    color: #8a8a8a;
+
+    font-size: 10px;
+
+    letter-spacing: 2px;
+
+    margin-right: 8px;
+}
+
+.hud-value {
+    color: #ffffff;
+
+    font-size: 14px;
+}
+
+.hud-center {
+    flex: 1;
+
+    text-align: center;
+
+    color: #e8e8e8;
+
+    letter-spacing: 0.5px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.hud-keys {
+    color: #777777;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+}
+
+.game-inventory {
+    position: absolute;
+
+    left: 12px;
+    bottom: 12px;
+
+    display: flex;
+
+    gap: 6px;
+
+    pointer-events: none;
+}
+
+.inv-slot {
+    position: relative;
+
+    width: 54px;
+    height: 44px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(10, 10, 10, 0.75);
+
+    border: 1px solid #444444;
+
+    color: #cccccc;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 9px;
+
+    text-align: center;
+
+    line-height: 1.2;
+}
+
+.inv-selected {
+    border-color: #ffffff;
+
+    box-shadow: 0 0 0 1px #ffffff inset;
+}
+
+.inv-filled {
+    background: rgba(20, 45, 30, 0.85);
+}
+
+.inv-key {
+    position: absolute;
+
+    top: 2px;
+    left: 4px;
+
+    color: #777777;
+
+    font-size: 9px;
+}
+
+.inv-item {
+    padding: 0 4px;
+
+    padding-top: 8px;
+}
+
+.game-fullscreen {
+    position: absolute;
+
+    right: 10px;
+    bottom: 10px;
+
+    width: 36px;
+    height: 36px;
+
+    color: #dddddd;
+
+    background: rgba(10, 10, 10, 0.75);
+
+    border: 1px solid #444444;
+
+    font-size: 16px;
+
+    cursor: pointer;
+}
+
+.game-fullscreen:hover {
+    border-color: #ffffff;
+
+    color: #ffffff;
+}
+
+.game-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.72);
+
+    z-index: 5;
+}
+
+.game-overlay.hidden,
+.game-dialogue.hidden,
+.result-code.hidden,
+.review-why.hidden {
+    display: none;
+}
+
+.overlay-box {
+    width: min(560px, 100%);
+
+    max-height: 100%;
+
+    overflow-y: auto;
+
+    padding: 28px 30px;
+
+    background: #0f0f0f;
+
+    border: 1px solid #454545;
+
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+
+    color: #d0d0d0;
+}
+
+.overlay-box h2 {
+    margin: 10px 0 16px;
+
+    color: #ffffff;
+
+    font-size: 24px;
+
+    letter-spacing: -0.5px;
+}
+
+.overlay-note {
+    margin: 0 0 18px;
+
+    color: #a0a0a0;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+.controls-list {
+    margin: 0 0 18px;
+
+    padding: 0;
+
+    list-style: none;
+
+    color: #cfcfcf;
+
+    font-size: 14px;
+}
+
+.controls-list li {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin: 8px 0;
+}
+
+kbd {
+    display: inline-block;
+
+    min-width: 26px;
+
+    padding: 4px 7px;
+
+    background: #1c1c1c;
+
+    border: 1px solid #555555;
+
+    border-bottom-width: 3px;
+
+    color: #ffffff;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 11px;
+
+    text-align: center;
+}
+
+.game-dialogue {
+    position: absolute;
+
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+
+    padding: 14px 18px 12px;
+
+    background: rgba(8, 8, 8, 0.92);
+
+    border: 1px solid #5a5a5a;
+
+    color: #e6e6e6;
+
+    font-size: 14px;
+
+    line-height: 1.55;
+
+    cursor: pointer;
+
+    z-index: 4;
+}
+
+.game-dialogue strong {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #ffffff;
+
+    font-size: 10px;
+
+    letter-spacing: 2px;
+}
+
+.game-dialogue p {
+    margin: 0 0 6px;
+}
+
+.dialogue-more {
+    display: block;
+
+    text-align: right;
+
+    color: #8a8a8a;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+}
+
+.challenge-box {
+    width: min(640px, 100%);
+}
+
+.challenge-top {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+}
+
+.challenge-prompt {
+    margin: 0 0 14px;
+
+    color: #f0f0f0;
+
+    font-size: 15px;
+
+    line-height: 1.55;
+}
+
+.challenge-code,
+.challenge-text {
+    width: 100%;
+
+    padding: 12px;
+
+    color: #eeeeee;
+
+    background: #050505;
+
+    border: 1px solid #3a3a3a;
+
+    outline: none;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    resize: vertical;
+}
+
+.challenge-code:focus,
+.challenge-text:focus {
+    border-color: #8a8a8a;
+}
+
+.choice-button {
+    display: block;
+
+    width: 100%;
+
+    margin: 6px 0;
+
+    padding: 12px 14px;
+
+    text-align: left;
+
+    color: #cfcfcf;
+
+    background: #0a0a0a;
+
+    border: 1px solid #333333;
+
+    font-size: 13px;
+
+    line-height: 1.45;
+
+    cursor: pointer;
+}
+
+.choice-button:hover {
+    border-color: #666666;
+
+    color: #ffffff;
+}
+
+.choice-selected {
+    border-color: #ffffff;
+
+    color: #ffffff;
+
+    background: #171717;
+}
+
+.review-code {
+    border: 1px solid #333333;
+
+    background: #050505;
+
+    margin-bottom: 12px;
+}
+
+.review-line {
+    display: grid;
+
+    grid-template-columns: 34px 1fr;
+
+    width: 100%;
+
+    padding: 8px 10px;
+
+    text-align: left;
+
+    color: #d0d0d0;
+
+    background: transparent;
+
+    border: none;
+
+    border-bottom: 1px solid #1c1c1c;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 12px;
+
+    cursor: pointer;
+
+    white-space: pre-wrap;
+}
+
+.review-line:hover {
+    background: #121212;
+}
+
+.review-selected {
+    background: #1a1a1a;
+
+    color: #ffffff;
+
+    box-shadow: inset 2px 0 0 #ffffff;
+}
+
+.review-number {
+    color: #5d5d5d;
+}
+
+.review-why .section-label {
+    margin: 10px 0 6px;
+}
+
+.challenge-feedback {
+    min-height: 20px;
+
+    margin: 12px 0 4px;
+
+    color: #bbbbbb;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+.feedback-bad {
+    color: #f1f1f1;
+
+    padding: 10px 12px;
+
+    background: #1b1b1b;
+
+    border-left: 2px solid #ffffff;
+}
+
+.shake {
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.challenge-hints {
+    margin-bottom: 6px;
+}
+
+.hint-line {
+    margin: 6px 0;
+
+    padding: 9px 12px;
+
+    color: #d8d8d8;
+
+    background: #0d1a12;
+
+    border-left: 2px solid #4be07a;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+.challenge-actions {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 14px;
+}
+
+.challenge-actions .large-button,
+.challenge-actions .outline-button {
+    width: auto;
+
+    flex: 1;
+
+    min-height: 46px;
+}
+
+.challenge-actions .outline-button:disabled {
+    opacity: 0.4;
+
+    cursor: not-allowed;
+}
+
+.result-code {
+    margin: 12px 0 0;
+
+    padding: 12px 14px;
+
+    background: #050505;
+
+    border: 1px solid #2c2c2c;
+
+    color: #d8d8d8;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+
+    white-space: pre-wrap;
+}
+
+.result-stats {
+    display: flex;
+
+    gap: 10px;
+
+    margin: 18px 0 6px;
+}
+
+.result-stat {
+    flex: 1;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 6px;
+
+    padding: 12px 14px;
+
+    background: #141414;
+
+    border: 1px solid #2c2c2c;
+}
+
+.stat-value {
+    color: #ffffff;
+
+    font-size: 18px;
+
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   CHARACTER PAGE
+========================================================= */
+
+.character-page,
+.leaderboard-page {
+    width: min(1000px, 90%);
+
+    margin: 0 auto;
+
+    padding-top: 135px;
+
+    padding-bottom: 100px;
+}
+
+.character-card {
+    display: grid;
+
+    grid-template-columns: 220px 1fr;
+
+    gap: 30px;
+
+    padding: 34px;
+
+    background: #111111;
+
+    border: 1px solid #303030;
+}
+
+.character-preview {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 24px;
+
+    background: #0a0a0a;
+
+    border: 1px solid #2a2a2a;
+}
+
+.character-preview canvas {
+    image-rendering: pixelated;
+
+    width: 96px;
+    height: 128px;
+}
+
+.character-form {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.option-group {
+    margin: 0 0 14px;
+
+    padding: 0;
+
+    border: none;
+}
+
+.option-group legend {
+    margin-bottom: 10px;
+}
+
+.option-row {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+}
+
+.option-chip {
+    position: relative;
+
+    cursor: pointer;
+}
+
+.option-chip input {
+    position: absolute;
+
+    opacity: 0;
+
+    width: 0;
+    height: 0;
+}
+
+.option-chip span {
+    display: inline-block;
+
+    padding: 10px 14px;
+
+    color: #b5b5b5;
+
+    background: #0b0b0b;
+
+    border: 1px solid #333333;
+
+    font-size: 11px;
+
+    letter-spacing: 1px;
+}
+
+.option-chip input:checked + span {
+    color: #111111;
+
+    background: #eeeeee;
+
+    border-color: #eeeeee;
+}
+
+.option-chip input:focus-visible + span {
+    outline: 1px solid #ffffff;
+}
+
+
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+.board-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 16px;
+}
+
+.board-card {
+    padding: 26px;
+
+    background: #121212;
+
+    border: 1px solid #303030;
+}
+
+.board-card h2 {
+    margin: 22px 0 16px;
+
+    color: #ededed;
+
+    font-size: 24px;
+
+    letter-spacing: -0.5px;
+}
+
+.board-table {
+    width: 100%;
+
+    margin-bottom: 18px;
+
+    border-collapse: collapse;
+
+    font-size: 13px;
+}
+
+.board-table th {
+    padding: 8px 6px;
+
+    text-align: left;
+
+    color: #777777;
+
+    font-size: 10px;
+
+    font-weight: 400;
+
+    letter-spacing: 1.5px;
+
+    border-bottom: 1px solid #2c2c2c;
+}
+
+.board-table td {
+    padding: 9px 6px;
+
+    color: #cfcfcf;
+
+    border-bottom: 1px solid #1e1e1e;
+}
+
+.board-me td {
+    color: #ffffff;
+
+    font-weight: 600;
+}
+
+.board-empty {
+    margin: 0 0 18px;
+
+    color: #8a8a8a;
+
+    font-size: 13px;
+}
+
+.board-card .course-button {
+    text-decoration: none;
+
+    display: inline-flex;
+
+    align-items: center;
+}
+
+
+/* =========================================================
+   SECTIONS, LESSON, HEALTH, TOAST, INTERACTIVE CHALLENGES
+========================================================= */
+
+.section-item {
+    list-style: none;
+
+    margin-bottom: 6px;
+}
+
+.section-name {
+    margin: 12px 0 2px;
+
+    color: #6a6a6a;
+
+    font-size: 9px;
+
+    letter-spacing: 2px;
+}
+
+.section-levels {
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+}
+
+.section-levels .level-link {
+    padding: 8px 6px;
+
+    font-size: 12px;
+}
+
+.lesson-box {
+    width: min(640px, 100%);
+}
+
+.lesson-points {
+    margin: 0 0 14px;
+
+    padding-left: 18px;
+
+    color: #d6d6d6;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+.lesson-points li {
+    margin: 7px 0;
+}
+
+.lesson-box .learn-example {
+    margin-bottom: 16px;
+}
+
+.controls-strip {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px 16px;
+
+    margin: 0 0 16px;
+
+    color: #9a9a9a;
+
+    font-size: 11px;
+}
+
+.controls-strip kbd {
+    min-width: 20px;
+
+    padding: 2px 5px;
+
+    font-size: 10px;
+
+    border-bottom-width: 2px;
+}
+
+.hud-hearts {
+    margin-right: 12px;
+
+    color: #ff4d5e;
+
+    font-size: 13px;
+
+    letter-spacing: 1px;
+}
+
+.hud-hearts .heart-empty {
+    color: #4a4a4a;
+}
+
+.game-inventory .inv-slot {
+    width: 46px;
+    height: 40px;
+
+    font-size: 8px;
+}
+
+.game-toast {
+    position: absolute;
+
+    left: 50%;
+    bottom: 64px;
+
+    transform: translateX(-50%);
+
+    padding: 8px 14px;
+
+    background: rgba(8, 8, 8, 0.9);
+
+    border: 1px solid #5a5a5a;
+
+    color: #f0f0f0;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 11px;
+
+    letter-spacing: 0.5px;
+
+    white-space: nowrap;
+
+    pointer-events: none;
+
+    z-index: 4;
+}
+
+.game-toast.hidden {
+    display: none;
+}
+
+/* fill-in-the-blank */
+
+.blank-code {
+    padding: 12px 14px;
+
+    background: #050505;
+
+    border: 1px solid #3a3a3a;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 14px;
+
+    line-height: 2;
+}
+
+.blank-line {
+    white-space: pre;
+}
+
+.blank-text {
+    color: #e6e6e6;
+
+    white-space: pre;
+}
+
+.blank-input {
+    width: 9ch;
+
+    margin: 0 2px;
+
+    padding: 2px 6px;
+
+    color: #ffffff;
+
+    background: #141414;
+
+    border: 1px solid #5a5a5a;
+
+    border-bottom: 2px solid #ffffff;
+
+    outline: none;
+
+    font: inherit;
+
+    text-align: center;
+}
+
+.blank-input:focus {
+    background: #1e1e1e;
+
+    border-color: #ffffff;
+}
+
+.word-bank {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin-top: 10px;
+}
+
+.word-bank-label {
+    width: 100%;
+
+    margin: 0 0 2px;
+}
+
+.bank-token {
+    padding: 7px 11px;
+
+    color: #e0e0e0;
+
+    background: #161616;
+
+    border: 1px solid #444444;
+
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 12px;
+
+    cursor: pointer;
+}
+
+.bank-token:hover {
+    border-color: #ffffff;
+
+    color: #ffffff;
+}
+
+/* drag-to-order */
+
+.order-list {
+    border: 1px solid #3a3a3a;
+
+    background: #050505;
+}
+
+.order-piece {
+    display: grid;
+
+    grid-template-columns: 22px 1fr auto;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 8px 10px;
+
+    border-bottom: 1px solid #1c1c1c;
+
+    color: #e6e6e6;
+
+    cursor: grab;
+
+    user-select: none;
+}
+
+.order-piece:last-child {
+    border-bottom: none;
+}
+
+.order-piece.dragging {
+    opacity: 0.4;
+}
+
+.order-piece.drop-before {
+    box-shadow: inset 0 2px 0 #ffffff;
+}
+
+.order-piece.drop-after {
+    box-shadow: inset 0 -2px 0 #ffffff;
+}
+
+.order-grip {
+    color: #5a5a5a;
+
+    font-size: 14px;
+
+    letter-spacing: -2px;
+}
+
+.order-text {
+    font-family: "SFMono-Regular", Consolas, monospace;
+
+    font-size: 13px;
+
+    white-space: pre;
+}
+
+.order-buttons {
+    display: flex;
+
+    gap: 4px;
+}
+
+.order-buttons button {
+    width: 26px;
+    height: 24px;
+
+    color: #bbbbbb;
+
+    background: #151515;
+
+    border: 1px solid #3a3a3a;
+
+    font-size: 11px;
+
+    cursor: pointer;
+}
+
+.order-buttons button:hover {
+    border-color: #ffffff;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   BADGES (profile) + CHECKPOINT QUIZ
+========================================================= */
+
+.badges-section {
+    padding-top: 70px;
+}
+
+.badge-course {
+    padding: 22px 0;
+
+    border-top: 1px solid #292929;
+}
+
+.badge-course:last-child {
+    border-bottom: 1px solid #292929;
+}
+
+.badge-course-top {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 14px;
+}
+
+.badge-course-top h3 {
+    margin: 0;
+
+    color: #eeeeee;
+
+    font-size: 18px;
+
+    font-weight: 500;
+}
+
+.badge-grid {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+}
+
+.badge {
+    width: 78px;
+
+    padding: 10px 4px 8px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 6px;
+
+    background: #121212;
+
+    border: 1px solid #2a2a2a;
+
+    text-align: center;
+}
+
+.badge-earned {
+    border-color: #4a4a4a;
+}
+
+.badge-locked {
+    opacity: 0.45;
+}
+
+.badge-icon {
+    width: 48px;
+    height: 48px;
+
+    image-rendering: pixelated;
+}
+
+.badge-name {
+    color: #c8c8c8;
+
+    font-size: 9px;
+
+    letter-spacing: 0.5px;
+
+    line-height: 1.3;
+}
+
+.level-kind {
+    margin-left: 6px;
+
+    color: #6a6a6a;
+
+    font-size: 8px;
+
+    letter-spacing: 1px;
+}
+
+.quiz-panel {
+    position: absolute;
+
+    inset: 0;
+
+    overflow-y: auto;
+
+    padding: 54px 28px 28px;
+
+    background: #0a0a0a;
+}
+
+.quiz-panel.hidden {
+    display: none;
+}
+
+.quiz-question {
+    margin-bottom: 18px;
+
+    padding: 16px 18px;
+
+    background: #111111;
+
+    border: 1px solid #2a2a2a;
+}
+
+.quiz-question.quiz-wrong {
+    border-color: #ffffff;
+}
+
+.quiz-question h3 {
+    margin: 0 0 10px;
+
+    color: #f0f0f0;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    line-height: 1.5;
+}
+
+.quiz-question .choice-button {
+    margin: 4px 0;
+
+    padding: 9px 12px;
+
+    font-size: 13px;
+}
+
+.quiz-actions {
+    display: flex;
+
+    gap: 10px;
+
+    align-items: center;
+}
+
+.quiz-actions .large-button {
+    width: auto;
+
+    flex: 1;
+
+    min-height: 46px;
+}
+
+.quiz-feedback {
+    margin: 0 0 14px;
+
+    min-height: 18px;
+
+    color: #f0f0f0;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE (new pages)
+========================================================= */
+
+@media (max-width: 950px) {
+
+    .course-frame {
+        grid-template-columns: 1fr;
+    }
+
+    .course-sidebar {
+        border-right: none;
+
+        border-bottom: 1px solid #262626;
+    }
+
+    .level-panels,
+    .board-grid,
+    .character-card {
+        grid-template-columns: 1fr;
+    }
+
+    .level-header {
+        flex-direction: column;
+    }
+
+    .level-concepts {
+        justify-content: flex-start;
+
+        max-width: none;
+    }
+}

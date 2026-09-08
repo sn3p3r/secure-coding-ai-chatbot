@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Sign Up | Cyber Academy</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body class="login-page">
+
+    <main class="login-container">
+
+        <div class="login-box signup-box">
+
+            <div class="login-brand">
+                CREATE ACCOUNT
+            </div>
+
+            <p class="signup-description">
+                Create your Cyber Academy account.
+            </p>
+
+
+            {% if error %}
+                <p class="login-error">
+                    {{ error }}
+                </p>
+            {% endif %}
+
+
+            <form
+                method="POST"
+                action="{{ url_for('signup') }}"
+                class="signup-form"
+                id="signup-form"
+            >
+
+                <label for="username">
+                    USERNAME
+                </label>
+
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    minlength="3"
+                    required
+                    autocomplete="username"
+                >
+
+
+                <label for="password">
+                    PASSWORD
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    minlength="8"
+                    required
+                    autocomplete="new-password"
+                >
+
+
+                <!-- PASSWORD REQUIREMENTS -->
+                <div class="password-requirements">
+
+                    <p class="requirements-title">
+                        PASSWORD REQUIREMENTS
+                    </p>
+
+                    <div
+                        id="req-length"
+                        class="requirement"
+                    >
+                        ○ At least 8 characters
+                    </div>
+
+                    <div
+                        id="req-upper"
+                        class="requirement"
+                    >
+                        ○ Contains uppercase letter
+                    </div>
+
+                    <div
+                        id="req-lower"
+                        class="requirement"
+                    >
+                        ○ Contains lowercase letter
+                    </div>
+
+                    <div
+                        id="req-number"
+                        class="requirement"
+                    >
+                        ○ Contains number
+                    </div>
+
+                    <div
+                        id="req-special"
+                        class="requirement"
+                    >
+                        ○ Contains special character
+                    </div>
+
+                    <div
+                        id="req-entropy"
+                        class="requirement"
+                    >
+                        ○ Entropy: 0.00 bits/character
+                    </div>
+
+                    <div
+                        id="password-strength"
+                        class="password-strength"
+                    >
+                        PASSWORD STRENGTH: —
+                    </div>
+
+                </div>
+
+
+                <label for="confirm_password">
+                    CONFIRM PASSWORD
+                </label>
+
+                <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    minlength="8"
+                    required
+                    autocomplete="new-password"
+                >
+
+
+                <div
+                    id="password-match"
+                    class="password-match"
+                ></div>
+
+
+                <button
+                    type="submit"
+                    class="login-submit"
+                    id="signup-submit"
+                    disabled
+                >
+                    CREATE ACCOUNT
+                </button>
+
+            </form>
+
+
+            <div class="login-bottom">
+
+                <span>Already have an account?</span>
+
+                <a href="{{ url_for('login') }}">
+                    LOGIN
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const confirmInput =
+            document.getElementById("confirm_password");
+
+        const submitButton =
+            document.getElementById("signup-submit");
+
+
+        function calculateEntropy(text) {
+
+            if (!text) {
+                return 0;
+            }
+
+            const counts = {};
+
+            for (const character of text) {
+                counts[character] =
+                    (counts[character] || 0) + 1;
+            }
+
+            let entropy = 0;
+
+            for (const character in counts) {
+
+                const probability =
+                    counts[character] / text.length;
+
+                entropy -=
+                    probability *
+                    Math.log2(probability);
+            }
+
+            return entropy;
+        }
+
+
+        function updateRequirement(
+            elementId,
+            condition,
+            text
+        ) {
+
+            const element =
+                document.getElementById(elementId);
+
+            if (condition) {
+
+                element.textContent =
+                    "✓ " + text;
+
+                element.classList.add("requirement-good");
+
+            } else {
+
+                element.textContent =
+                    "○ " + text;
+
+                element.classList.remove(
+                    "requirement-good"
+                );
+            }
+        }
+
+
+        function updatePasswordRequirements() {
+
+            const password =
+                passwordInput.value;
+
+
+            const entropy =
+                calculateEntropy(password);
+
+
+            const hasLength =
+                password.length >= 8;
+
+            const hasUpper =
+                /[A-Z]/.test(password);
+
+            const hasLower =
+                /[a-z]/.test(password);
+
+            const hasNumber =
+                /[0-9]/.test(password);
+
+            const hasSpecial =
+                /[^A-Za-z0-9]/.test(password);
+
+
+            updateRequirement(
+                "req-length",
+                hasLength,
+                "At least 8 characters"
+            );
+
+            updateRequirement(
+                "req-upper",
+                hasUpper,
+                "Contains uppercase letter"
+            );
+
+            updateRequirement(
+                "req-lower",
+                hasLower,
+                "Contains lowercase letter"
+            );
+
+            updateRequirement(
+                "req-number",
+                hasNumber,
+                "Contains number"
+            );
+
+            updateRequirement(
+                "req-special",
+                hasSpecial,
+                "Contains special character"
+            );
+
+
+            const entropyElement =
+                document.getElementById(
+                    "req-entropy"
+                );
+
+
+            entropyElement.textContent =
+                "○ Entropy: " +
+                entropy.toFixed(2) +
+                " bits/character";
+
+
+            entropyElement.classList.remove(
+                "requirement-good"
+            );
+
+
+            if (entropy >= 3.5) {
+
+                entropyElement.textContent =
+                    "✓ Entropy: " +
+                    entropy.toFixed(2) +
+                    " bits/character";
+
+                entropyElement.classList.add(
+                    "requirement-good"
+                );
+            }
+
+
+            const strength =
+                document.getElementById(
+                    "password-strength"
+                );
+
+
+            if (password.length === 0) {
+
+                strength.textContent =
+                    "PASSWORD STRENGTH: —";
+
+                strength.className =
+                    "password-strength";
+
+            } else if (
+                entropy >= 4.5 &&
+                password.length >= 12 &&
+                hasUpper &&
+                hasLower &&
+                hasNumber &&
+                hasSpecial
+            ) {
+
+                strength.textContent =
+                    "PASSWORD STRENGTH: EXCELLENT";
+
+                strength.className =
+                    "password-strength strength-excellent";
+
+            } else if (
+                entropy >= 3.5 &&
+                password.length >= 8 &&
+                hasUpper &&
+                hasLower &&
+                hasNumber
+            ) {
+
+                strength.textContent =
+                    "PASSWORD STRENGTH: GOOD";
+
+                strength.className =
+                    "password-strength strength-good";
+
+            } else {
+
+                strength.textContent =
+                    "PASSWORD STRENGTH: NEEDS IMPROVEMENT";
+
+                strength.className =
+                    "password-strength strength-weak";
+            }
+
+
+            updatePasswordMatch();
+
+            updateSubmitButton();
+        }
+
+
+        function updatePasswordMatch() {
+
+            const matchElement =
+                document.getElementById(
+                    "password-match"
+                );
+
+            if (
+                confirmInput.value.length === 0
+            ) {
+
+                matchElement.textContent = "";
+
+                return;
+            }
+
+
+            if (
+                passwordInput.value ===
+                confirmInput.value
+            ) {
+
+                matchElement.textContent =
+                    "✓ Passwords match";
+
+                matchElement.className =
+                    "password-match requirement-good";
+
+            } else {
+
+                matchElement.textContent =
+                    "○ Passwords do not match";
+
+                matchElement.className =
+                    "password-match";
+            }
+        }
+
+
+        function updateSubmitButton() {
+
+            const password =
+                passwordInput.value;
+
+            const confirm =
+                confirmInput.value;
+
+            const entropy =
+                calculateEntropy(password);
+
+
+            const valid =
+                password.length >= 8 &&
+                /[A-Z]/.test(password) &&
+                /[a-z]/.test(password) &&
+                /[0-9]/.test(password) &&
+                /[^A-Za-z0-9]/.test(password) &&
+                entropy >= 3.5 &&
+                password === confirm;
+
+
+            submitButton.disabled = !valid;
+        }
+
+
+        passwordInput.addEventListener(
+            "input",
+            updatePasswordRequirements
+        );
+
+
+        confirmInput.addEventListener(
+            "input",
+            updatePasswordRequirements
+        );
+
+    </script>
+
+</body>
+
+</html>

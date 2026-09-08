@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Your Character | Cyber Academy</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <a href="/" class="back-link">
+            ← CYBER ACADEMY
+        </a>
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent">00:00:00</span>
+        </div>
+
+        <a href="/profile" class="profile-button">
+            <span class="profile-picture">
+                {{ session.get("username", "U")[0]|upper }}
+            </span>
+            <span>PROFILE</span>
+        </a>
+
+    </header>
+
+
+    <main class="character-page">
+
+        <section class="quiz-intro">
+            <p class="academy-name">RECRUIT REGISTRATION</p>
+            <h1>CREATE YOUR CHARACTER</h1>
+            <p>Choose how you appear inside the Academy simulation. You can change this any time.</p>
+        </section>
+
+        <section class="character-card">
+
+            <div class="character-preview">
+                <canvas id="preview-canvas" width="96" height="128"></canvas>
+                <p class="section-label">PREVIEW</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('character') }}" class="character-form" id="character-form">
+
+                <input type="hidden" name="next" value="{{ next_url }}">
+
+                {% if error %}
+                    <p class="login-error">{{ error }}</p>
+                {% endif %}
+
+                {% set labels = {
+                    'gender': 'GENDER',
+                    'hair': 'HAIR STYLE',
+                    'hair_color': 'HAIR COLOUR',
+                    'outfit': 'OUTFIT'
+                } %}
+
+                {% for field, choices in options.items() %}
+                    <fieldset class="option-group">
+                        <legend class="section-label">{{ labels[field] }}</legend>
+                        <div class="option-row">
+                            {% for choice in choices %}
+                                <label class="option-chip">
+                                    <input
+                                        type="radio"
+                                        name="{{ field }}"
+                                        value="{{ choice }}"
+                                        {% if current.get(field, choices[0]) == choice %}checked{% endif %}
+                                        required
+                                    >
+                                    <span>{{ choice|replace('_', ' ')|upper }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                {% endfor %}
+
+                <div class="quiz-actions">
+                    <button type="submit" class="large-button">SAVE &amp; ENTER</button>
+                    <a href="/" class="outline-button">BACK</a>
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sprite.js') }}"></script>
+    <script>
+        (function () {
+            const form = document.getElementById("character-form");
+            const canvas = document.getElementById("preview-canvas");
+            const ctx = canvas.getContext("2d");
+            let frame = 0;
+
+            function currentCharacter() {
+                const data = new FormData(form);
+                return {
+                    gender: data.get("gender"),
+                    hair: data.get("hair"),
+                    hair_color: data.get("hair_color"),
+                    outfit: data.get("outfit")
+                };
+            }
+
+            function render() {
+                ctx.fillStyle = "#0a0a0a";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                CyberSprite.drawCharacter(ctx, currentCharacter(), 0, 0, 8, 1, frame);
+            }
+
+            form.addEventListener("change", render);
+            setInterval(function () { frame = frame ? 0 : 1; render(); }, 450);
+            render();
+        })();
+    </script>
+
+</body>
+
+</html>

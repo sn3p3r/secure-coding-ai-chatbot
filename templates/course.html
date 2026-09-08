@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ course.title }} | Cyber Academy</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <a href="/" class="back-link">
+            ← CYBER ACADEMY
+        </a>
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent">00:00:00</span>
+        </div>
+
+        <a href="/profile" class="profile-button">
+            <span class="profile-picture">
+                {{ username[0]|upper }}
+            </span>
+            <span>{{ username|upper }}</span>
+        </a>
+
+    </header>
+
+
+    <main class="course-page">
+
+        <div class="course-frame">
+
+            <!-- LEFT: COURSE MAP -->
+            <aside class="course-sidebar">
+
+                <p class="academy-name">
+                    {{ course.number }} · {{ course.zone|upper }}
+                </p>
+
+                <h2>{{ course.title|upper }}</h2>
+
+                <div class="course-progress">
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ course_progress.percent }}%;"></div>
+                    </div>
+                    <span>{{ course_progress.percent }}%</span>
+                </div>
+
+                <p class="sidebar-label">SECTIONS</p>
+
+                <ol class="level-list">
+                    {% for section in sidebar %}
+                        <li class="section-item">
+                            <p class="section-name">{{ section.name|upper }}</p>
+                            <ol class="section-levels">
+                                {% for item in section.levels %}
+                                    <li class="level-item level-{{ item.status }} {% if item.number == level.number %}level-viewing{% endif %}">
+                                        {% if item.status == 'locked' %}
+                                            <span class="level-link">
+                                                <span class="level-num">{{ '%02d' % item.number }}</span>
+                                                <span class="level-name">{{ item.title }}</span>
+                                                <span class="level-mark">LOCKED</span>
+                                            </span>
+                                        {% else %}
+                                            <a class="level-link" href="{{ url_for('course_level', course_slug=course.slug, number=item.number) }}">
+                                                <span class="level-num">{{ '%02d' % item.number }}</span>
+                                                <span class="level-name">{{ item.title }}{% if item.kind == 'quiz' %}<span class="level-kind">QUIZ</span>{% endif %}</span>
+                                                <span class="level-mark">{% if item.status == 'done' %}✓{% else %}▶{% endif %}</span>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                        </li>
+                    {% endfor %}
+                </ol>
+
+                <div class="sidebar-actions">
+                    <a href="{{ url_for('leaderboard') }}" class="outline-button">LEADERBOARD</a>
+                    <a href="{{ url_for('character', next=request.path) }}" class="text-button">EDIT CHARACTER</a>
+                </div>
+
+            </aside>
+
+
+            <!-- RIGHT: LEVEL -->
+            <section class="course-main">
+
+                <div class="level-header">
+
+                    <div>
+                        <p class="academy-name">
+                            {{ level.section|upper }} · LEVEL {{ '%02d' % level.number }} OF {{ '%02d' % course_progress.total }}
+                            {% if level.number in course_progress.completed %} · COMPLETED{% endif %}
+                        </p>
+                        <h1>{{ level.title }}</h1>
+                        <p class="level-objective">{{ level.objective }}</p>
+                    </div>
+
+                    <div class="level-concepts">
+                        {% for concept in level.concepts %}
+                            <span class="concept-tag">{{ concept }}</span>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+
+                {% if unlocked %}
+
+                <!-- GAME WINDOW -->
+                <div id="game-window" class="game-window" tabindex="0">
+
+                    {% if level.kind == 'quiz' %}
+                        <div id="quiz-panel" class="quiz-panel hidden"></div>
+                    {% else %}
+                        <canvas id="game-canvas" width="320" height="192"></canvas>
+                    {% endif %}
+
+                    <!-- HUD -->
+                    <div class="game-hud">
+                        <div class="hud-left">
+                            {% if level.kind != 'quiz' %}
+                                <span id="hud-hearts" class="hud-hearts" aria-label="health"></span>
+                            {% endif %}
+                            <span class="hud-label">TIME</span>
+                            <span id="hud-timer" class="hud-value">00:00</span>
+                        </div>
+                        <div class="hud-center" id="hud-objective">—</div>
+                        <div class="hud-right">
+                            <span class="hud-keys">{% if level.kind == 'quiz' %}CHECKPOINT{% else %}WASD · SPACE · E · F{% endif %}</span>
+                        </div>
+                    </div>
+
+                    {% if level.kind != 'quiz' %}
+                        <div class="game-inventory" id="game-inventory">
+                            {% for slot in range(5) %}
+                                <div class="inv-slot" data-slot="{{ slot }}"><span class="inv-key">{{ slot + 1 }}</span><span class="inv-item"></span></div>
+                            {% endfor %}
+                        </div>
+
+                        <div id="game-toast" class="game-toast hidden"></div>
+                    {% endif %}
+
+                    <button id="fullscreen-btn" class="game-fullscreen" type="button" title="Fullscreen">⛶</button>
+
+                    <!-- LESSON + CONTROLS (shown before play) -->
+                    <div id="overlay-lesson" class="game-overlay">
+                        <div class="overlay-box lesson-box">
+                            <p class="academy-name">{{ level.section|upper }} · LEVEL {{ '%02d' % level.number }} · BEFORE YOU START</p>
+                            <h2>{{ level.lesson.title }}</h2>
+
+                            <ul class="lesson-points">
+                                {% for point in level.lesson.points %}
+                                    <li>{{ point }}</li>
+                                {% endfor %}
+                            </ul>
+
+                            {% if level.lesson.example %}
+                                <pre class="learn-example">{{ level.lesson.example }}</pre>
+                            {% endif %}
+
+                            {% if level.kind == 'quiz' %}
+                                <p class="overlay-note">Four questions. The timer runs until every answer is right. Wrong answers only tell you which question to look at again.</p>
+                            {% else %}
+                                <div class="controls-strip">
+                                    <span><kbd>A</kbd><kbd>D</kbd> move</span>
+                                    <span><kbd>W</kbd>/<kbd>SPACE</kbd> jump</span>
+                                    <span><kbd>E</kbd> talk / use</span>
+                                    <span><kbd>F</kbd> or click: use item</span>
+                                    <span><kbd>1</kbd>–<kbd>5</kbd> slots</span>
+                                    <span><kbd>ENTER</kbd> next dialogue</span>
+                                </div>
+                            {% endif %}
+
+                            <button id="btn-start" class="large-button" type="button">{% if level.kind == 'quiz' %}START QUIZ{% else %}START LEVEL{% endif %}</button>
+                        </div>
+                    </div>
+
+                    <!-- DIALOGUE -->
+                    <div id="overlay-dialogue" class="game-dialogue hidden">
+                        <strong id="dialogue-name">BYTE</strong>
+                        <p id="dialogue-text"></p>
+                        <span class="dialogue-more">E / ENTER ▸</span>
+                    </div>
+
+                    <!-- CHALLENGE -->
+                    <div id="overlay-challenge" class="game-overlay hidden">
+                        <div class="overlay-box challenge-box">
+                            <div class="challenge-top">
+                                <p class="academy-name" id="challenge-label">TERMINAL</p>
+                                <button id="btn-challenge-close" class="mentor-close" type="button">×</button>
+                            </div>
+                            <p id="challenge-prompt" class="challenge-prompt"></p>
+                            <div id="challenge-body"></div>
+                            <p id="challenge-feedback" class="challenge-feedback"></p>
+                            <div id="challenge-hints" class="challenge-hints"></div>
+                            <div class="challenge-actions">
+                                <button id="btn-submit" class="large-button" type="button">RUN</button>
+                                <button id="btn-hint" class="outline-button" type="button">USE HINT CHIP</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RESULT -->
+                    <div id="overlay-result" class="game-overlay hidden">
+                        <div class="overlay-box result-box">
+                            <p class="academy-name" id="result-label">ACCESS GRANTED</p>
+                            <h2 id="result-title"></h2>
+                            <p id="result-text"></p>
+                            <pre id="result-code" class="result-code hidden"></pre>
+                            <div id="result-stats" class="result-stats"></div>
+                            <div class="challenge-actions" id="result-actions"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {% else %}
+
+                <div class="game-window game-locked">
+                    <div class="overlay-box">
+                        <p class="academy-name">LOCKED</p>
+                        <h2>Finish level {{ '%02d' % (level.number - 1) }} first</h2>
+                        <p class="overlay-note">Levels unlock in order so each idea builds on the last.</p>
+                        <a class="large-button" href="{{ url_for('course_level', course_slug=course.slug, number=course_progress.current) }}">GO TO CURRENT LEVEL</a>
+                    </div>
+                </div>
+
+                {% endif %}
+
+
+                <!-- LEVEL INFO -->
+                <div class="level-panels">
+
+                    <div class="level-panel">
+                        <p class="section-label">STORY</p>
+                        <p>{{ level.story }}</p>
+                        <p class="section-label">YOUR GOAL</p>
+                        <p>{{ level.goal }}</p>
+                    </div>
+
+                    <div class="level-panel">
+                        <p class="section-label">LESSON NOTES · {{ level.lesson.title }}</p>
+                        <ul class="learn-list">
+                            {% for point in level.lesson.points %}
+                                <li>{{ point }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% if level.lesson.example %}
+                            <pre class="learn-example">{{ level.lesson.example }}</pre>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    {% include "_mentor.html" %}
+
+    {% if unlocked %}
+        <script id="level-data" type="application/json">{{ level_json|tojson }}</script>
+        <script id="character-data" type="application/json">{{ character_json|tojson }}</script>
+    {% endif %}
+
+    <script>
+        window.mentorOnline = {{ 'true' if mentor_online else 'false' }};
+        window.mentorLevel = {{ {'course': course.slug, 'level': level.number, 'kind': level.kind, 'title': level.title}|tojson }};
+    </script>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sprite.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+
+</body>
+
+</html>

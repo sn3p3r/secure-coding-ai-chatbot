@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Profile | Cyber Academy</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <a href="/" class="back-link">
+            ← CYBER ACADEMY
+        </a>
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent">00:00:00</span>
+        </div>
+
+        <div class="profile-button">
+
+            <span class="profile-picture">
+                {{ user["username"][0]|upper }}
+            </span>
+
+            <span>{{ user["username"]|upper }}</span>
+
+        </div>
+
+    </header>
+
+
+    <main class="profile-page">
+
+        <!-- PROFILE HEADER -->
+        <section class="profile-heading">
+
+            <div class="large-profile-picture">
+                {{ user["username"][0]|upper }}
+            </div>
+
+            <div>
+
+                <p class="academy-name">
+                    STUDENT PROFILE
+                </p>
+
+                <h1>
+                    {{ user["username"] }}
+                </h1>
+
+                <p class="profile-description">
+                    Cyber Academy student
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- MAIN STATS -->
+        <section class="stats-section">
+
+            <p class="section-label">
+                OVERVIEW
+            </p>
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        OVERALL COMPLETION
+                    </span>
+
+                    <strong class="stat-number">
+                        {{ overall_percent }}%
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        TIME SPENT
+                    </span>
+
+                    <strong
+                        class="stat-number"
+                        id="profile-time"
+                    >
+                        00:00:00
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        LEVELS COMPLETED
+                    </span>
+
+                    <strong class="stat-number">
+                        {{ levels_done }}
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        RECOMMENDED COURSE
+                    </span>
+
+                    <strong class="stat-number small-stat">
+                        {% if user["recommended_course"] %}
+                            {{ user["recommended_course"] }}
+                        {% else %}
+                            NOT SET
+                        {% endif %}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- BADGES -->
+        <section class="badges-section">
+
+            <p class="section-label">
+                BADGES
+            </p>
+
+            {% for group in badges %}
+            <div class="badge-course">
+
+                <div class="badge-course-top">
+                    <h3>{{ group.course.title }}</h3>
+                    <span class="course-percentage">{{ group.earned }} / {{ group.badges|length }} earned</span>
+                </div>
+
+                <div class="badge-grid">
+                    {% for b in group.badges %}
+                        <div class="badge {% if b.earned %}badge-earned{% else %}badge-locked{% endif %}" title="{{ b.name }} · {{ b.title }}">
+                            <canvas
+                                class="badge-icon"
+                                width="24"
+                                height="24"
+                                data-course="{{ group.course.slug }}"
+                                data-index="{{ loop.index0 }}"
+                                data-earned="{{ 1 if b.earned else 0 }}"
+                                data-master="{{ 1 if b.master else 0 }}"
+                                data-kind="{{ b.kind }}"
+                            ></canvas>
+                            <span class="badge-name">{{ b.name }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+            {% endfor %}
+
+        </section>
+
+
+        <!-- COURSE PROGRESS -->
+        <section class="profile-courses">
+
+            <div class="courses-header">
+
+                <div>
+                    <p class="section-label">
+                        LEARNING PATH
+                    </p>
+
+                    <h2>
+                        Course Progress
+                    </h2>
+                </div>
+
+                <a href="/" class="outline-button">
+                    BACK TO COURSES
+                </a>
+
+            </div>
+
+
+            {% for course in courses %}
+            {% set p = progress[course.slug] %}
+
+            <div class="profile-course">
+
+                <div class="profile-course-top">
+
+                    <div>
+                        <span class="course-number">
+                            {{ course.number }}
+                        </span>
+
+                        <h3>
+                            <a class="profile-course-link" href="{{ url_for('course_home', course_slug=course.slug) }}">{{ course.title }}</a>
+                        </h3>
+                    </div>
+
+                    <span class="course-percentage">
+                        {{ p.levels_done }} / {{ p.total }} levels · {{ p.percent }}%
+                    </span>
+
+                </div>
+
+                <div class="profile-progress-track">
+                    <div
+                        class="profile-progress-fill"
+                        style="width: {{ p.percent }}%;"
+                    ></div>
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </section>
+
+
+        <!-- ACCOUNT ACTIONS -->
+        <section class="account-actions">
+
+            <a
+                href="/quiz"
+                class="outline-button"
+            >
+                RETAKE COURSE QUIZ
+            </a>
+
+            <a
+                href="{{ url_for('character') }}"
+                class="outline-button"
+            >
+                EDIT CHARACTER
+            </a>
+
+            <a
+                href="{{ url_for('leaderboard') }}"
+                class="outline-button"
+            >
+                LEADERBOARD
+            </a>
+
+            <a
+                href="/logout"
+                class="text-button"
+            >
+                LOG OUT
+            </a>
+
+        </section>
+
+    </main>
+
+
+    {% include "_mentor.html" %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/badges.js') }}"></script>
+
+</body>
+
+</html>
