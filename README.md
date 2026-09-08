@@ -1,5 +1,7 @@
 # Cyber Academy
 
+> Basically this aims to build an ai chatbot that makes learning entertaining and tailored to you.
+
 A browser-based 2D pixel story game that teaches beginners **Python**,
 **Cybersecurity**, **Internet Fundamentals** and **Secure Coding**.
 Every level opens with short lesson notes, drops you into a small
