@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Friends | Cyber Academy</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <a href="/" class="back-link">
+            ← CYBER ACADEMY
+        </a>
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent">00:00:00</span>
+        </div>
+
+        <div class="top-right">
+            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/profile" class="profile-button">
+                <span class="profile-picture">
+                    {{ username[0]|upper }}
+                </span>
+                <span>{{ username|upper }}</span>
+            </a>
+        </div>
+
+    </header>
+
+
+    <main class="friends-page" data-me="{{ me }}">
+
+        <section class="quiz-intro">
+            <p class="academy-name">ACADEMY NETWORK</p>
+            <h1>FRIENDS</h1>
+            <p>Search for any registered student by username and add them. Their cards show how far they are, which beams they have lit, and how many secret achievements they have found.</p>
+        </section>
+
+        {% if error %}
+            <p class="friend-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="get" action="{{ url_for('friends') }}" class="friend-search">
+            <input
+                type="text"
+                name="q"
+                value="{{ query }}"
+                placeholder="Search by username"
+                maxlength="30"
+                autocomplete="off"
+                aria-label="Search by username"
+            >
+            <button type="submit" class="outline-button">SEARCH</button>
+        </form>
+
+        {% if results is not none %}
+            <p class="section-label">SEARCH RESULTS · "{{ query }}"</p>
+
+            {% if results %}
+                <div class="friend-list">
+                    {% for person in results %}
+                        <article class="friend-card friend-result" data-username="{{ person.username }}" data-user-id="{{ person.id }}">
+                            <span class="friend-avatar">{{ person.username[0]|upper }}</span>
+                            <div class="friend-body">
+                                <span class="friend-name">{{ person.username }}</span>
+                                <span class="friend-meta">{{ person.levels_done }} / {{ person.total }} levels · {{ person.percent }}% · {{ person.beams|length }} / 4 beams</span>
+                            </div>
+                            {% if person.added %}
+                                <span class="friend-added">ADDED</span>
+                            {% else %}
+                                <form method="post" action="{{ url_for('friends_add') }}">
+                                    <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                    <button type="submit" class="friend-action">ADD FRIEND</button>
+                                </form>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="friend-empty">No accounts match "{{ query }}".</p>
+            {% endif %}
+        {% endif %}
+
+        <p class="section-label">YOUR FRIENDS · {{ friends|length }}</p>
+
+        {% if friends %}
+            <div class="friend-list">
+                {% for person in friends %}
+                    <article class="friend-card" data-username="{{ person.username }}" data-user-id="{{ person.id }}">
+                        <span class="friend-avatar">{{ person.username[0]|upper }}</span>
+                        <div class="friend-body">
+                            <span class="friend-name">{{ person.username }}</span>
+                            <span class="friend-meta">{{ person.levels_done }} / {{ person.total }} levels · {{ person.percent }}% · {{ person.beams|length }} / 4 beams · {{ person.secrets }} secret{% if person.secrets != 1 %}s{% endif %}</span>
+                            <div class="beam-row" aria-label="beams">
+                                {% for course in courses %}
+                                    <span class="beam beam-{{ course.slug }} {% if course.slug in person.beams %}beam-lit{% endif %}" title="{{ course.title }}"></span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <form method="post" action="{{ url_for('friends_remove') }}">
+                            <input type="hidden" name="friend_id" value="{{ person.id }}">
+                            <button type="submit" class="friend-action">REMOVE</button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="friend-empty">Nobody yet. Search for a username above.</p>
+        {% endif %}
+
+        <section class="account-actions">
+            <a href="{{ url_for('profile') }}" class="outline-button">MY PROFILE</a>
+            <a href="{{ url_for('leaderboard') }}" class="outline-button">LEADERBOARD</a>
+        </section>
+
+    </main>
+
+
+    {% include "_mentor.html" %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+
+</html>

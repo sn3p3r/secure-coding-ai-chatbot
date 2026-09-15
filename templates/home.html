@@ -19,12 +19,15 @@
             <span id="time-spent">00:00:00</span>
         </div>
 
-        <a href="/profile" class="profile-button">
-            <span class="profile-picture">
-                {{ username[0]|upper }}
-            </span>
-            <span>{{ username|upper }}</span>
-        </a>
+        <div class="top-right">
+            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/profile" class="profile-button">
+                <span class="profile-picture">
+                    {{ username[0]|upper }}
+                </span>
+                <span>{{ username|upper }}</span>
+            </a>
+        </div>
 
     </header>
 

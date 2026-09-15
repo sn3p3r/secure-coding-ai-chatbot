@@ -477,11 +477,18 @@ if (
             );
 
 
-            if (
-                !mentorPanel.classList.contains(
-                    "hidden"
-                )
-            ) {
+            const dock =
+                document.getElementById("mentor-dock");
+
+            const open =
+                !mentorPanel.classList.contains("hidden");
+
+            if (dock) {
+                dock.classList.toggle("open", open);
+            }
+
+
+            if (open) {
 
                 checkMentorStatus();
 
@@ -511,6 +518,21 @@ if (
             mentorPanel.classList.add(
                 "hidden"
             );
+
+            const dock =
+                document.getElementById("mentor-dock");
+
+            if (dock) {
+                dock.classList.remove("open");
+            }
+
+            // Hand the keyboard back to the game.
+            const gameWindow =
+                document.getElementById("game-window");
+
+            if (gameWindow) {
+                gameWindow.focus();
+            }
 
         }
     );

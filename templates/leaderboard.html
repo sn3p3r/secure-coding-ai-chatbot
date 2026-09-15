@@ -24,12 +24,15 @@
             <span id="time-spent">00:00:00</span>
         </div>
 
-        <a href="/profile" class="profile-button">
-            <span class="profile-picture">
-                {{ username[0]|upper }}
-            </span>
-            <span>{{ username|upper }}</span>
-        </a>
+        <div class="top-right">
+            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/profile" class="profile-button">
+                <span class="profile-picture">
+                    {{ username[0]|upper }}
+                </span>
+                <span>{{ username|upper }}</span>
+            </a>
+        </div>
 
     </header>
 
@@ -39,52 +42,67 @@
         <section class="quiz-intro">
             <p class="academy-name">ACADEMY RANKINGS</p>
             <h1>LEADERBOARD</h1>
-            <p>Ranked by levels completed, then by the fastest total time. The clock runs from the moment you gain control until the terminal accepts your answer.</p>
+            <p>Every level keeps its own record: the clock runs from the moment you gain control until the terminal accepts your answer. Beat a record and your name goes on the level.</p>
         </section>
 
-        <div class="board-grid">
+        {% for board in boards %}
+            <section class="board-card board-wide">
 
-            {% for board in boards %}
-                <section class="board-card">
+                <div class="course-top">
+                    <span class="course-number">{{ board.course.number }}</span>
+                    <span class="course-status">{{ board.course.zone|upper }}</span>
+                </div>
 
-                    <div class="course-top">
-                        <span class="course-number">{{ board.course.number }}</span>
-                        <span class="course-status">{{ board.course.zone|upper }}</span>
-                    </div>
+                <h2>{{ board.course.title|upper }}</h2>
 
-                    <h2>{{ board.course.title|upper }}</h2>
+                <div class="board-columns">
 
-                    {% if board.rows %}
-                        <table class="board-table">
+                    <div>
+                        <p class="section-label">LEVEL RECORDS</p>
+                        <table class="board-table records-table">
                             <thead>
                                 <tr>
-                                    <th>#</th>
-                                    <th>RECRUIT</th>
-                                    <th>LEVELS</th>
-                                    <th>TIME</th>
+                                    <th>LEVEL</th>
+                                    <th>RECORD</th>
+                                    <th>HELD BY</th>
+                                    <th>YOUR BEST</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for row in board.rows %}
-                                    <tr class="{% if row.username == username %}board-me{% endif %}">
-                                        <td>{{ loop.index }}</td>
-                                        <td>{{ row.username }}</td>
-                                        <td>{{ row.levels_done }} / {{ board.course.levels|length }}</td>
-                                        <td>{{ '%02d:%02d' % (row.total_seconds // 60, row.total_seconds % 60) }}</td>
+                                {% for lvl in board.levels %}
+                                    <tr class="{% if lvl.record and lvl.record.username == username %}board-me{% endif %}">
+                                        <td>{{ '%02d' % lvl.number }} {{ lvl.title }}{% if lvl.kind == 'quiz' %} <span class="level-kind">QUIZ</span>{% endif %}</td>
+                                        <td>{% if lvl.record %}{{ '%02d:%02d' % (lvl.record.seconds // 60, lvl.record.seconds % 60) }}{% else %}—{% endif %}</td>
+                                        <td>{% if lvl.record %}{{ lvl.record.username }}{% else %}unclaimed{% endif %}</td>
+                                        <td>{% if lvl.mine is not none %}{{ '%02d:%02d' % (lvl.mine // 60, lvl.mine % 60) }}{% else %}—{% endif %}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
-                    {% else %}
-                        <p class="board-empty">No recruit has finished a level here yet.</p>
-                    {% endif %}
+                    </div>
 
-                    <a class="course-button" href="{{ url_for('course_home', course_slug=board.course.slug) }}">ENTER {{ board.course.zone|upper }}</a>
+                    <div class="board-ranking">
+                        <p class="section-label">FURTHEST PROGRESS</p>
+                        {% if board.ranking %}
+                            <ol class="rank-list">
+                                {% for row in board.ranking %}
+                                    <li class="{% if row.username == username %}board-me{% endif %}">
+                                        <span>{{ row.username }}</span>
+                                        <span>{{ row.levels_done }} / {{ board.levels|length }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                        {% else %}
+                            <p class="board-empty">No recruit has finished a level here yet.</p>
+                        {% endif %}
 
-                </section>
-            {% endfor %}
+                        <a class="course-button" href="{{ url_for('course_home', course_slug=board.course.slug) }}">ENTER {{ board.course.zone|upper }}</a>
+                    </div>
 
-        </div>
+                </div>
+
+            </section>
+        {% endfor %}
 
     </main>
 

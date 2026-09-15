@@ -136,7 +136,7 @@
                         </div>
                         <div class="hud-center" id="hud-objective">—</div>
                         <div class="hud-right">
-                            <span class="hud-keys">{% if level.kind == 'quiz' %}CHECKPOINT{% else %}WASD · SPACE · E · F{% endif %}</span>
+                            <span class="hud-keys">{% if level.kind == 'quiz' %}CHECKPOINT{% else %}WASD · SPACE · E · F · Q{% endif %}</span>
                         </div>
                     </div>
 
@@ -155,33 +155,52 @@
                     <!-- LESSON + CONTROLS (shown before play) -->
                     <div id="overlay-lesson" class="game-overlay">
                         <div class="overlay-box lesson-box">
-                            <p class="academy-name">{{ level.section|upper }} · LEVEL {{ '%02d' % level.number }} · BEFORE YOU START</p>
-                            <h2>{{ level.lesson.title }}</h2>
+                            {% if level.no_lesson %}
+                                <p class="academy-name">{{ level.section|upper }} · LEVEL {{ '%02d' % level.number }}</p>
+                                <h2>{{ level.title }}</h2>
+                                <p class="overlay-note story-note">{{ level.story }}</p>
+                            {% else %}
+                                <p class="academy-name">{{ level.section|upper }} · LEVEL {{ '%02d' % level.number }} · BEFORE YOU START</p>
+                                <h2>{{ level.lesson.title }}</h2>
 
-                            <ul class="lesson-points">
-                                {% for point in level.lesson.points %}
-                                    <li>{{ point }}</li>
-                                {% endfor %}
-                            </ul>
+                                <ul class="lesson-points">
+                                    {% for point in level.lesson.points %}
+                                        <li>{{ point }}</li>
+                                    {% endfor %}
+                                </ul>
 
-                            {% if level.lesson.example %}
-                                <pre class="learn-example">{{ level.lesson.example }}</pre>
+                                {% if level.lesson.example %}
+                                    <pre class="learn-example">{{ level.lesson.example }}</pre>
+                                {% endif %}
                             {% endif %}
 
                             {% if level.kind == 'quiz' %}
-                                <p class="overlay-note">Four questions. The timer runs until every answer is right. Wrong answers only tell you which question to look at again.</p>
+                                <p class="overlay-note">Six questions. The timer runs until every answer is right. Wrong answers only tell you which question to look at again.</p>
                             {% else %}
                                 <div class="controls-strip">
                                     <span><kbd>A</kbd><kbd>D</kbd> move</span>
                                     <span><kbd>W</kbd>/<kbd>SPACE</kbd> jump</span>
-                                    <span><kbd>E</kbd> talk / use</span>
-                                    <span><kbd>F</kbd> or click: use item</span>
+                                    <span><kbd>E</kbd> talk / use / enter open door</span>
+                                    <span><kbd>F</kbd> or click: swing weapon / use the selected item (candy heals)</span>
+                                    <span><kbd>Q</kbd> drop the selected item</span>
                                     <span><kbd>1</kbd>–<kbd>5</kbd> slots</span>
-                                    <span><kbd>ENTER</kbd> next dialogue</span>
+                                    <span><kbd>TAB</kbd> indent in the terminal</span>
                                 </div>
                             {% endif %}
 
-                            <button id="btn-start" class="large-button" type="button">{% if level.kind == 'quiz' %}START QUIZ{% else %}START LEVEL{% endif %}</button>
+                            {% if record %}
+                                <p class="overlay-record">LEVEL RECORD · {{ '%02d:%02d' % (record.seconds // 60, record.seconds % 60) }} · {{ record.username }}</p>
+                            {% endif %}
+
+                            {% if checkpoint_json %}
+                                <p class="overlay-note">You passed a door in this level last time. Resume there, or start the level over.</p>
+                                <div class="challenge-actions">
+                                    <button id="btn-resume" class="large-button" type="button">RESUME AT CHECKPOINT</button>
+                                    <button id="btn-start" class="outline-button" type="button">START OVER</button>
+                                </div>
+                            {% else %}
+                                <button id="btn-start" class="large-button" type="button">{% if level.kind == 'quiz' %}START QUIZ{% else %}START LEVEL{% endif %}</button>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -249,14 +268,21 @@
                     </div>
 
                     <div class="level-panel">
-                        <p class="section-label">LESSON NOTES · {{ level.lesson.title }}</p>
-                        <ul class="learn-list">
-                            {% for point in level.lesson.points %}
-                                <li>{{ point }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% if level.lesson.example %}
-                            <pre class="learn-example">{{ level.lesson.example }}</pre>
+                        {% if level.no_lesson %}
+                            <p class="section-label">HOW TO PLAY</p>
+                            <p>{{ level.gameplay }}</p>
+                            <p class="section-label">NOTES</p>
+                            <p>Nothing to study yet. This part of the story is just you, the jungle, and whatever is ahead.</p>
+                        {% else %}
+                            <p class="section-label">LESSON NOTES · {{ level.lesson.title }}</p>
+                            <ul class="learn-list">
+                                {% for point in level.lesson.points %}
+                                    <li>{{ point }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% if level.lesson.example %}
+                                <pre class="learn-example">{{ level.lesson.example }}</pre>
+                            {% endif %}
                         {% endif %}
                     </div>
 
@@ -274,6 +300,8 @@
     {% if unlocked %}
         <script id="level-data" type="application/json">{{ level_json|tojson }}</script>
         <script id="character-data" type="application/json">{{ character_json|tojson }}</script>
+        <script id="inventory-data" type="application/json">{{ inventory_json|tojson }}</script>
+        <script id="checkpoint-data" type="application/json">{{ checkpoint_json|tojson }}</script>
     {% endif %}
 
     <script>

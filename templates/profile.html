@@ -33,13 +33,19 @@
             <span id="time-spent">00:00:00</span>
         </div>
 
-        <div class="profile-button">
+        <div class="top-right">
 
-            <span class="profile-picture">
-                {{ user["username"][0]|upper }}
-            </span>
+            <a href="/friends" class="top-link">FRIENDS</a>
 
-            <span>{{ user["username"]|upper }}</span>
+            <div class="profile-button">
+
+                <span class="profile-picture">
+                    {{ user["username"][0]|upper }}
+                </span>
+
+                <span>{{ user["username"]|upper }}</span>
+
+            </div>
 
         </div>
 
@@ -142,6 +148,62 @@
                 </div>
 
             </div>
+
+        </section>
+
+
+        <!-- BEAMS + SECRET ACHIEVEMENTS -->
+        <section class="secrets-section">
+
+            <div class="courses-header">
+                <div>
+                    <p class="section-label">THE OBELISK</p>
+                    <h2>{{ beams|length }} / 4 beams lit</h2>
+                </div>
+                <div class="beam-row" aria-label="beams">
+                    {% for course in courses %}
+                        <span class="beam beam-{{ course.slug }} {% if course.slug in beams %}beam-lit{% endif %}" title="{{ course.title }}{% if course.slug not in beams %} - not yet{% endif %}"></span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <p class="section-label secrets-label">SECRET ACHIEVEMENTS · {{ secrets_earned }} / {{ secrets|length }}</p>
+
+            <div class="secret-grid">
+                {% for s in secrets %}
+                    {% if s.earned %}
+                        <div class="secret secret-earned">
+                            <strong>{{ s.title }}</strong>
+                            <span>{{ s.desc }}</span>
+                        </div>
+                    {% else %}
+                        <div class="secret secret-locked">
+                            <strong>???</strong>
+                            <span>Secret. Keep playing.</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if idea or language %}
+                <div class="profile-extras">
+                    {% if idea %}
+                        <div class="idea-card">
+                            <p class="section-label">YOUR WEBSITE IDEA</p>
+                            <h3>{{ idea.name }}</h3>
+                            <p>{{ idea.pitch }}</p>
+                            <p class="idea-pages">Pages: {{ idea.pages|join(' · ') }}</p>
+                        </div>
+                    {% endif %}
+                    {% if language %}
+                        <div class="idea-card">
+                            <p class="section-label">SECURE CODING LANGUAGE</p>
+                            <h3>{{ language|capitalize }}</h3>
+                            <p>Replay level 1 of Secure Coding to change it.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
 
         </section>
 
@@ -266,6 +328,13 @@
                 class="outline-button"
             >
                 LEADERBOARD
+            </a>
+
+            <a
+                href="{{ url_for('friends') }}"
+                class="outline-button"
+            >
+                FRIENDS
             </a>
 
             <a
