@@ -9,9 +9,12 @@ from collections import Counter
 
 from dotenv import load_dotenv
 
-from curriculum import COURSES, COURSE_ORDER, QUIZ_TO_COURSE, get_course, get_level, public_level, course_sections, mentor_briefing
-from challenges import check_answer
+from curriculum import COURSES, COURSE_ORDER, QUIZ_TO_COURSE, get_course, get_level, public_level, course_sections, mentor_briefing, resolve_challenge
+from challenges import check_answer, leaks_answer, swipe_card_verdict
 import progress as progress_db
+import achievements
+
+IDEAS_FILE = os.getenv("ACADEMY_IDEAS_FILE", os.path.join("data", "website_ideas.jsonl"))
 
 load_dotenv()
 
@@ -43,7 +46,8 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
 )
 
-DATABASE = "academy.db"
+# ACADEMY_DB lets a deployment keep the database on a persistent disk.
+DATABASE = os.getenv("ACADEMY_DB", "academy.db")
 
 # Allowed values for the pixel character (validated server-side).
 CHARACTER_OPTIONS = {
@@ -429,6 +433,10 @@ def profile():
     conn = get_db()
     all_progress = progress_db.all_progress(conn, user["id"])
     badges = progress_db.badge_collection(conn, user["id"])
+    secrets = achievements.profile_view(conn, user["id"])
+    idea = progress_db.get_idea(conn, user["id"])
+    language = progress_db.get_language(conn, user["id"])
+    beams = progress_db.finished_courses(conn, user["id"])
     conn.close()
 
     total_levels = sum(p["total"] for p in all_progress.values())
@@ -440,6 +448,11 @@ def profile():
         courses=[COURSES[slug] for slug in COURSE_ORDER],
         progress=all_progress,
         badges=badges,
+        secrets=secrets,
+        secrets_earned=sum(1 for s in secrets if s["earned"]),
+        idea=idea,
+        language=language,
+        beams=beams,
         levels_done=levels_done,
         overall_percent=round(levels_done / total_levels * 100) if total_levels else 0,
     )
@@ -500,12 +513,17 @@ def mentor():
     context = ""
     course_slug = data.get("course")
     number = data.get("level")
+    lvl = None
+    language = None
 
     if isinstance(course_slug, str) and isinstance(number, int) and not isinstance(number, bool):
         course = get_course(course_slug)
         lvl = get_level(course_slug, number)
         if course and lvl:
-            context = mentor_briefing(course, lvl)
+            conn = get_db()
+            language = progress_db.get_language(conn, session["user_id"])
+            conn.close()
+            context = mentor_briefing(course, lvl, language)
 
     if ask_mentor is None or not mentor_available():
         return jsonify({
@@ -539,6 +557,15 @@ def mentor():
             code,
             context
         )
+
+        # Safety net: even if a clever prompt gets past the rules, the
+        # exact terminal code never reaches the player.
+        if context and leaks_answer(resolve_challenge(lvl, language), answer):
+            nudge = lvl["hints"][0] if lvl["hints"] else "re-read the lesson notes above the terminal."
+            answer = (
+                "I nearly handed that over, and Academy rules don't allow it. "
+                "Here's a nudge instead: " + nudge
+            )
 
         return jsonify({
             "success": True,
@@ -672,6 +699,11 @@ def course_level(course_slug, number):
 
     course_progress = progress_db.course_progress(conn, session["user_id"], course_slug)
     unlocked = progress_db.is_unlocked(conn, session["user_id"], course_slug, number)
+    inventory = progress_db.get_inventory(conn, session["user_id"], course_slug)
+    record = progress_db.level_records(conn, course_slug).get(number)
+    checkpoint = progress_db.get_checkpoint(conn, session["user_id"], course_slug, number)
+    language = progress_db.get_language(conn, session["user_id"])
+    beams = progress_db.finished_courses(conn, session["user_id"])
 
     progress_db.set_selected_course(conn, session["user_id"], course_slug)
     conn.commit()
@@ -698,8 +730,11 @@ def course_level(course_slug, number):
         "course.html",
         course=course,
         level=lvl,
-        level_json=public_level(course, lvl),
+        level_json=public_level(course, lvl, language, beams),
         character_json=character_data,
+        inventory_json=inventory,
+        checkpoint_json=checkpoint,
+        record=record,
         sidebar=sidebar,
         course_progress=course_progress,
         unlocked=unlocked,
@@ -707,6 +742,73 @@ def course_level(course_slug, number):
         username=session.get("username", "U"),
         mentor_online=mentor_available(),
     )
+
+
+# ---------------------------------------------------------
+# FRIENDS
+# ---------------------------------------------------------
+
+def render_friends(query="", error=None):
+    conn = get_db()
+    results = progress_db.search_users(conn, session["user_id"], query) if query else None
+    friends = progress_db.friends_of(conn, session["user_id"])
+    conn.close()
+
+    return render_template(
+        "friends.html",
+        username=session.get("username", "U"),
+        me=session["user_id"],
+        query=query,
+        results=results,
+        friends=friends,
+        courses=[COURSES[slug] for slug in COURSE_ORDER],
+        error=error,
+    )
+
+
+@app.route("/friends")
+@login_required
+def friends():
+    query = request.args.get("q", "").strip()[:30]
+    return render_friends(query)
+
+
+def friend_id_from_form():
+    value = request.form.get("friend_id", "")
+    if not value.isdigit():
+        abort(400)
+    return int(value)
+
+
+@app.route("/friends/add", methods=["POST"])
+@login_required
+def friends_add():
+    friend_id = friend_id_from_form()
+
+    conn = get_db()
+    outcome = progress_db.add_friend(conn, session["user_id"], friend_id)
+    conn.commit()
+    conn.close()
+
+    if outcome == "missing":
+        abort(404)
+    if outcome == "self":
+        return render_friends(error="You can't add yourself - you're already on your own side.")
+
+    return redirect(url_for("friends"))
+
+
+@app.route("/friends/remove", methods=["POST"])
+@login_required
+def friends_remove():
+    friend_id = friend_id_from_form()
+
+    conn = get_db()
+    progress_db.remove_friend(conn, session["user_id"], friend_id)
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("friends"))
 
 
 @app.route("/leaderboard")
@@ -717,9 +819,22 @@ def leaderboard():
 
     boards = []
     for slug in COURSE_ORDER:
+        course = COURSES[slug]
+        records = progress_db.level_records(conn, slug)
+        mine = progress_db.course_progress(conn, session["user_id"], slug)["times"]
         boards.append({
-            "course": COURSES[slug],
-            "rows": progress_db.leaderboard(conn, slug),
+            "course": course,
+            "levels": [
+                {
+                    "number": lvl["number"],
+                    "title": lvl["title"],
+                    "kind": lvl["kind"],
+                    "record": records.get(lvl["number"]),
+                    "mine": mine.get(lvl["number"]),
+                }
+                for lvl in course["levels"]
+            ],
+            "ranking": progress_db.progress_ranking(conn, slug),
         })
 
     conn.close()
@@ -776,6 +891,14 @@ def level_start():
         conn.close()
         return jsonify({"success": False, "error": "This level is still locked."}), 403
 
+    # Resuming from a door checkpoint keeps the time already spent. The
+    # offset comes from the server's own record, not from the browser.
+    offset = 0
+    if data.get("resume") is True:
+        checkpoint = progress_db.get_checkpoint(conn, session["user_id"], course["slug"], lvl["number"])
+        if checkpoint:
+            offset = max(0, min(int(checkpoint["elapsed"]), 24 * 3600))
+
     conn.close()
 
     # The timer lives in the signed session cookie, so the browser
@@ -783,10 +906,64 @@ def level_start():
     session["level_timer"] = {
         "course": course["slug"],
         "level": lvl["number"],
-        "started": time.time(),
+        "started": time.time() - offset,
     }
 
-    return jsonify({"success": True})
+    return jsonify({"success": True, "elapsed": offset})
+
+
+def timer_elapsed(course_slug, number):
+    """Seconds since /api/level/start for this level, or None if the timer is not running."""
+    timer = session.get("level_timer")
+
+    if (
+        isinstance(timer, dict)
+        and timer.get("course") == course_slug
+        and timer.get("level") == number
+    ):
+        elapsed = int(time.time() - float(timer.get("started", time.time())))
+        return max(0, min(elapsed, 24 * 3600))
+
+    return None
+
+
+@app.route("/api/level/checkpoint", methods=["POST"])
+@login_required
+def level_checkpoint():
+    """
+    Saves (or clears) the mid-level state the game sends when the
+    player passes a door. Game state only - it is never trusted for
+    completion or timing.
+    """
+    course, lvl, data, error = load_level_request()
+
+    if error:
+        return error
+
+    user_id = session["user_id"]
+    conn = get_db()
+
+    if not progress_db.is_unlocked(conn, user_id, course["slug"], lvl["number"]):
+        conn.close()
+        return jsonify({"success": False, "error": "This level is still locked."}), 403
+
+    if data.get("clear") is True:
+        progress_db.clear_checkpoint(conn, user_id, course["slug"], lvl["number"])
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "cleared": True})
+
+    elapsed = timer_elapsed(course["slug"], lvl["number"]) or 0
+    saved = progress_db.set_checkpoint(conn, user_id, course["slug"], lvl["number"], data.get("state"), elapsed)
+
+    if not saved:
+        conn.close()
+        return jsonify({"success": False, "error": "Checkpoint data is invalid or too large."}), 400
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "elapsed": elapsed})
 
 
 @app.route("/api/level/submit", methods=["POST"])
@@ -805,7 +982,29 @@ def level_submit():
         conn.close()
         return jsonify({"success": False, "error": "This level is still locked."}), 403
 
-    correct, feedback = check_answer(lvl["challenge"], data.get("answer"))
+    answer = data.get("answer")
+    language = progress_db.get_language(conn, user_id)
+    challenge = resolve_challenge(lvl, language)
+
+    # Sorting decks give feedback one card at a time; that never completes the level.
+    if challenge.get("type") == "swipe" and isinstance(answer, dict) and "card" in answer:
+        verdict = swipe_card_verdict(challenge, answer.get("card"), answer.get("scam"))
+        conn.close()
+        if verdict is None:
+            return jsonify({"success": False, "error": "Invalid card."}), 400
+        card_correct, actual, why = verdict
+        return jsonify({"success": True, "card": answer["card"], "correct": card_correct, "verdict": actual, "why": why, "partial": True})
+
+    correct, feedback = check_answer(challenge, answer)
+
+    # The inventory travels with the player between levels of ONE course.
+    # It is game state, not a security boundary, so it only needs to be well-formed.
+    inventory = progress_db.clean_inventory(data.get("inventory"))
+    if inventory is not None:
+        progress_db.set_inventory(conn, user_id, course["slug"], inventory)
+
+    # Enemy kills feed the secret achievements; the game sends the delta since its last report.
+    progress_db.add_kills(conn, user_id, data.get("kills"))
 
     if not correct:
         progress_db.record_attempt(conn, user_id, course["slug"], lvl["number"])
@@ -813,23 +1012,38 @@ def level_submit():
         conn.close()
         return jsonify({"success": True, "correct": False, "feedback": feedback})
 
-    elapsed = None
-    timer = session.get("level_timer")
+    if challenge.get("type") == "language":
+        progress_db.set_language(conn, user_id, answer)
 
-    if (
-        isinstance(timer, dict)
-        and timer.get("course") == course["slug"]
-        and timer.get("level") == lvl["number"]
-    ):
-        elapsed = int(time.time() - float(timer.get("started", time.time())))
-        elapsed = max(0, min(elapsed, 24 * 3600))
+    if challenge.get("type") == "idea":
+        idea = {
+            "name": answer["name"].strip(),
+            "pitch": answer["pitch"].strip(),
+            "pages": [p.strip() for p in answer["pages"]],
+        }
+        progress_db.set_idea(conn, user_id, idea)
+        save_idea_to_file(session.get("username", ""), idea)
+
+    previous_record = progress_db.level_records(conn, course["slug"]).get(lvl["number"])
+
+    elapsed = timer_elapsed(course["slug"], lvl["number"])
 
     progress_db.record_completion(conn, user_id, course["slug"], lvl["number"], elapsed)
     progress_db.set_selected_course(conn, user_id, course["slug"])
+    progress_db.clear_checkpoint(conn, user_id, course["slug"], lvl["number"])
     conn.commit()
 
     course_progress = progress_db.course_progress(conn, user_id, course["slug"])
+    record = progress_db.level_records(conn, course["slug"]).get(lvl["number"])
+    new_achievements = achievements.evaluate(conn, user_id)
+    beams = progress_db.finished_courses(conn, user_id)
+    conn.commit()
     conn.close()
+
+    new_record = (
+        elapsed is not None
+        and (previous_record is None or elapsed < previous_record["seconds"])
+    )
 
     session.pop("level_timer", None)
 
@@ -851,21 +1065,45 @@ def level_submit():
         "next_level": next_level,
         "course_finished": course_progress["finished"],
         "percent": course_progress["percent"],
+        "record": record,
+        "new_record": new_record,
+        "levels_done": course_progress["levels_done"],
+        "level_count": course_progress["total"],
+        "new_achievements": [{"title": a["title"], "desc": a["desc"]} for a in new_achievements],
+        "beams": beams,
     }
 
-    if lvl["challenge"].get("type") == "code_review":
-        response["fixed"] = lvl["challenge"].get("fixed", [])
+    if challenge.get("type") == "code_review":
+        response["fixed"] = challenge.get("fixed", [])
 
     return jsonify(response)
+
+
+def save_idea_to_file(username, idea):
+    """Appends the idea to data/website_ideas.jsonl (git-ignored) so it can be read later."""
+    import json as _json
+    try:
+        os.makedirs(os.path.dirname(IDEAS_FILE), exist_ok=True)
+        with open(IDEAS_FILE, "a", encoding="utf-8") as handle:
+            handle.write(_json.dumps({
+                "username": username,
+                "saved_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                "idea": idea,
+            }, ensure_ascii=False) + "\n")
+    except OSError as error:
+        print("Could not write the ideas file:", error)
 
 
 # ---------------------------------------------------------
 # START APPLICATION
 # ---------------------------------------------------------
 
-if __name__ == "__main__":
+# Create / migrate the database on import so WSGI servers (gunicorn)
+# get the tables too, not only `python3 app.py`.
+init_db()
 
-    init_db()
+
+if __name__ == "__main__":
 
     # PORT can be set in .env if 5000 is taken (macOS AirPlay uses it).
     # FLASK_DEBUG=0 turns the debugger off for deployment.

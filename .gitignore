@@ -23,3 +23,6 @@ venv/
 
 # Generated files
 *.png
+
+# Player-submitted website ideas
+data/
