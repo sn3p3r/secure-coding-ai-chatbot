@@ -26,10 +26,10 @@ COURSES = {
         "slug": "cybersecurity",
         "number": "01",
         "title": "Cybersecurity",
-        "zone": "The Watchtower",
-        "theme": "tower",
-        "description": "Learn how threats work, how systems are defended, and how security incidents are handled.",
-        "intro": "The Watchtower guards the Academy's walls. Here you learn to see threats before they see you.",
+        "zone": "The Wire",
+        "theme": "jungle",
+        "description": "Break into a lab, step by step - and learn what every one of those steps looks like to a defender.",
+        "intro": "You come out of a wire into a jungle. Somewhere ahead is a white lab. Nobody has told you why.",
         "levels": CYBER_LEVELS,
     },
     "python": {
@@ -98,6 +98,17 @@ def course_sections(course):
     return sections
 
 
+LANGUAGES = ("python", "javascript")
+
+
+def resolve_challenge(lvl, language=None):
+    """The challenge for one player: language-specific when the level has variants."""
+    variants = lvl.get("challenge_by_language")
+    if variants:
+        return variants.get(language) or variants["python"]
+    return lvl["challenge"]
+
+
 def level_map(course, lvl):
     return lvl["map"] or DEFAULT_MAP
 
@@ -106,13 +117,13 @@ def level_theme(course, lvl):
     return lvl["theme"] or course["theme"]
 
 
-def mentor_briefing(course, lvl):
+def mentor_briefing(course, lvl, language=None):
     """
     What SecureMentor is told about the level the player is on.
     Everything the player can already see is included; answer keys,
     regexes and correct orders are not.
     """
-    challenge = lvl["challenge"]
+    challenge = resolve_challenge(lvl, language)
     kind = challenge.get("type")
     lesson = lvl["lesson"]
 
@@ -127,10 +138,38 @@ def mentor_briefing(course, lvl):
     if lesson.get("example"):
         lines.append("Example shown in the lesson:\n" + lesson["example"])
 
+    if lvl.get("no_lesson"):
+        lines.append("This is a story-only level with no lesson: keep replies atmospheric and short, "
+                     "explain controls if asked, and say the teaching starts at the lab.")
+
     if kind == "quiz":
         lines.append("This is a checkpoint quiz. Questions (the correct options are deliberately NOT listed here):")
         for i, q in enumerate(challenge["questions"], 1):
             lines.append("%d. %s  Options: %s" % (i, q["prompt"], " | ".join(q["options"])))
+    elif kind == "swipe":
+        labels = challenge.get("labels") or ["SCAM", "LEGIT"]
+        lines.append("Sorting deck, %s vs %s (verdicts deliberately NOT listed). Coach on the pattern, never on a specific card:" % (labels[0], labels[1]))
+        for i, card in enumerate(challenge["cards"], 1):
+            lines.append("%d. [%s] %s - %s %s" % (i, card["kind"], card["from"], card.get("subject", ""), card["body"][:160]))
+    elif kind == "walk":
+        lines.append("Story level: no terminal. The goal is to reach the exit; explain mechanics if asked."
+                     + (" This is the obelisk finale: pressing the button lights the course's beam." if lvl.get("obelisk") else ""))
+    elif kind == "wires":
+        lines.append("Wiring puzzle: devices %s must be connected to ports %s according to the sign in the level (mapping NOT listed here)."
+                     % (", ".join(challenge["devices"]), ", ".join(challenge["ports"])))
+    elif kind == "route_packets":
+        lines.append("Packet delivery: machines %s. Packets: %s. (Correct deliveries NOT listed.)"
+                     % ("; ".join("%s = %s" % (m["name"], m["ip"]) for m in challenge["machines"]),
+                        "; ".join("%s to %s" % (p["label"], p["to"]) for p in challenge["packets"])))
+        if challenge.get("dns"):
+            lines.append("DNS table shown to the learner: " + "; ".join("%s = %s" % kv for kv in challenge["dns"].items()))
+    elif kind == "ip_assign":
+        lines.append("IP assignment on network %sx; addresses in use: %s. Explain the rules (four numbers 0-255, same prefix, last number 1-254, unique) but never propose a specific address."
+                     % (challenge["network"], ", ".join(challenge["taken"])))
+    elif kind == "idea":
+        lines.append("The learner is writing down a website idea (name, one-sentence pitch, three pages). Help them sharpen it with questions; do not write it for them.")
+    elif kind == "language":
+        lines.append("The learner is choosing the course language (%s)." % " or ".join(challenge["options"]))
     else:
         lines.append("Terminal challenge (%s): %s" % (kind, challenge.get("prompt", "")))
         if kind == "python_lines":
@@ -161,12 +200,14 @@ def mentor_briefing(course, lvl):
     return "\n".join(lines)
 
 
-def public_level(course, lvl):
+def public_level(course, lvl, language=None, beams=None):
     """
     The version of a level that is safe to send to the browser:
     answers, regexes, target lines and correct orders are stripped.
+    `language` picks the code variant; `beams` lists finished courses
+    for the obelisk sky.
     """
-    challenge = lvl["challenge"]
+    challenge = resolve_challenge(lvl, language)
     kind = challenge.get("type")
 
     public_challenge = {
@@ -200,6 +241,30 @@ def public_level(course, lvl):
             {"prompt": q["prompt"], "options": q["options"]} for q in challenge["questions"]
         ]
 
+    elif kind == "swipe":
+        # Verdicts and explanations arrive one card at a time from the server.
+        public_challenge["cards"] = [
+            {"kind": c["kind"], "from": c["from"], "subject": c.get("subject", ""), "body": c["body"]}
+            for c in challenge["cards"]
+        ]
+        public_challenge["labels"] = challenge.get("labels") or ["SCAM", "LEGIT"]
+
+    elif kind == "wires":
+        public_challenge["devices"] = challenge["devices"]
+        public_challenge["ports"] = challenge["ports"]
+
+    elif kind == "route_packets":
+        public_challenge["machines"] = challenge["machines"]
+        public_challenge["packets"] = challenge["packets"]
+        public_challenge["dns"] = challenge.get("dns", {})
+
+    elif kind == "ip_assign":
+        public_challenge["network"] = challenge["network"]
+        public_challenge["taken"] = challenge["taken"]
+
+    elif kind == "language":
+        public_challenge["options"] = challenge["options"]
+
     return {
         "course": course["slug"],
         "course_title": course["title"],
@@ -222,5 +287,17 @@ def public_level(course, lvl):
         "intro": lvl["intro"],
         "boss": lvl["boss"],
         "start_items": lvl["start_items"],
+        "no_lesson": lvl["no_lesson"],
+        "guide": lvl["guide"],
+        "bugs": lvl["bugs"],
+        "dark": lvl["dark"],
+        "door_by_bugs": lvl["door_by_bugs"],
+        "gate": lvl["gate"],
+        "finale": lvl["finale"],
+        "obelisk": lvl["obelisk"],
+        "mimic": lvl["mimic"],
+        "code_lines": lvl["code_lines"],
+        "beams": list(beams or []),
+        "language": language or "python",
         "level_count": len(course["levels"]),
     }
