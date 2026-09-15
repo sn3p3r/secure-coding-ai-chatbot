@@ -11,7 +11,7 @@ server-side (challenges.py). Feedback only says which line or blank
 is wrong; each level has one nudge hint that costs a hint chip.
 """
 
-from courses.common import level
+from courses.common import level, obelisk_level
 
 
 # ---------------------------------------------------------
@@ -295,7 +295,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "python_lines",
-            "prompt": "Write one line of Python that prints the word open.",
+            "prompt": "Write ONE line of Python that prints the word open (all lowercase).",
             "placeholder": "",
             "patterns": [{"regex": r"print\(\s*([\"'])open\1\s*\)"}],
         },
@@ -338,7 +338,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "order_code",
-            "prompt": "Drag the lines into the order the sign describes.",
+            "prompt": "Drag the three lines so the words print in the order the sign lists them (top line runs first).",
             "pieces": ['print("wake")', 'print("up")', 'print("recruit")'],
             "shuffle": [1, 2, 0],
         },
@@ -383,7 +383,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill both blanks. Store the sign's code in code, then print the variable.",
+            "prompt": "Fill both blanks: line 1 stores the sign's code in a variable called code; line 2 prints that variable (not the word code).",
             "code": ["code = ___", "print(___)"],
             "answers": [["4172"], ["code"]],
             "bank": ["4172", "code", "\"code\"", "\"4172\""],
@@ -427,7 +427,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "python_lines",
-            "prompt": "Line 1: store the note's word in a variable called word. Line 2: print the variable.",
+            "prompt": "Write two lines: line 1 stores the word from the note as TEXT in a variable called word; line 2 prints that variable.",
             "placeholder": "",
             "patterns": [
                 {"regex": r"word\s*=\s*([\"'])descend\1"},
@@ -456,22 +456,78 @@ PYTHON_LEVELS = [
             "points": ["print() outputs text; text sits inside quotes.", "Lines run top to bottom.", "name = value stores; print(name) reads the box - no quotes.", "Quotes around a name print the letters of the name, not the value."],
             "example": 'code = 4172\nprint(code)   # 4172\nprint("code") # code',
         },
-        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Four questions. No terminal - just you.'",
-        goal="Answer every question correctly to unlock the next level.",
-        gameplay="Read the recap, then answer four questions. One or two reach back to earlier sections.",
+        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Six questions. No terminal - just you.'",
+        goal="Get every question right to unlock the next level.",
+        gameplay="Read the recap, then answer six questions. Two of them reach back to earlier sections.",
         dialogue=["Checkpoint drill. Answer all four and the path opens."],
         challenge={
             "type": "quiz",
-            "prompt": "Answer all four questions. You can retry as often as you like.",
+            "prompt": "Answer every question. Wrong answers only tell you which question to look at again - retry as often as you like.",
             "questions": [
-                {"prompt": "What does print(\"hi\") output?", "options": ["print", "hi", "\"hi\"", "nothing"], "answer": 1},
-                {"prompt": "After code = 4172, what does print(code) show?", "options": ["code", "\"code\"", "4172", "an error"], "answer": 2},
-                {"prompt": "Earlier section: two print lines, one above the other. Which runs first?", "options": ["The bottom one", "Both at the same time", "Python picks randomly", "The top one"], "answer": 3},
-                {"prompt": "After code = 4172, what does print(\"code\") show?", "options": ["4172", "code", "an error", "nothing"], "answer": 1}
+                {
+                                "prompt": "This line runs:\nprint(\"hi\")\nWhat appears on the screen?",
+                                "options": [
+                                                "hi",
+                                                "\"hi\" (with the quotes)",
+                                                "print",
+                                                "Nothing"
+                                ],
+                                "answer": 0
+                },
+                {
+                                "prompt": "These two lines run:\ncode = 4172\nprint(code)\nWhat appears on the screen?",
+                                "options": [
+                                                "code",
+                                                "\"code\"",
+                                                "4172",
+                                                "An error"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "These two lines run:\ncode = 4172\nprint(\"code\")\nWhat appears on the screen?",
+                                "options": [
+                                                "4172",
+                                                "code",
+                                                "An error",
+                                                "Nothing"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "A program has two lines:\nprint(\"a\")\nprint(\"b\")\nWhich line runs first?",
+                                "options": [
+                                                "print(\"b\") - the bottom line",
+                                                "Both at exactly the same time",
+                                                "print(\"a\") - the top line",
+                                                "Python chooses randomly"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "Which line correctly stores the number 7 in a variable called count?",
+                                "options": [
+                                                "count = 7",
+                                                "7 = count",
+                                                "count == 7",
+                                                "print(count = 7)"
+                                ],
+                                "answer": 0
+                },
+                {
+                                "prompt": "In the line score = 10, what does the = sign do?",
+                                "options": [
+                                                "Checks whether score is already 10",
+                                                "Stores the value 10 under the name score",
+                                                "Prints 10",
+                                                "Adds 10 to score"
+                                ],
+                                "answer": 1
+                }
             ],
         },
         reasoning="Retrieval practice on the latest section, plus one or two cumulative questions.",
-        success="All four correct - the path opens.",
+        success="All six correct - the path opens.",
         failure="The drill says which question is wrong, nothing more.",
         explanation="print outputs; quotes mark text; = stores; a name without quotes reads the stored value.",
         reward="Checkpoint Pin I",
@@ -510,7 +566,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Give the counter the NUMBER three.",
+            "prompt": "Fill the blank so count holds the NUMBER three (not text).",
             "code": ["count = ___"],
             "answers": [["3"]],
             "bank": ["3", "\"3\"", "three", "3.0"],
@@ -554,7 +610,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill the blanks with the right TYPES.",
+            "prompt": "Fill the blanks: gate_open needs the boolean for yes; depth needs the number twelve. Watch the types.",
             "code": ["gate_open = ___", "depth = ___"],
             "answers": [["True"], ["12"]],
             "bank": ["True", "\"True\"", "12", "\"12\"", "true"],
@@ -599,7 +655,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "python_lines",
-            "prompt": "Line 1: ask for a name with input() and store it in name. Line 2: print a greeting that uses name.",
+            "prompt": "Write two lines: line 1 asks a question with input() and stores the answer in a variable called name; line 2 prints a greeting that includes name.",
             "placeholder": "",
             "patterns": [
                 {"regex": r"name\s*=\s*input\(\s*([\"'][^\"']*[\"'])?\s*\)"},
@@ -645,7 +701,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "order_code",
-            "prompt": "Drag the lines into the order that works.",
+            "prompt": "Drag the three lines into the order they must run: ask for the number, convert it, then print one more than it.",
             "pieces": ['age = input("Years in the Academy? ")', "age = int(age)", "print(age + 1)"],
             "shuffle": [2, 0, 1],
         },
@@ -671,22 +727,78 @@ PYTHON_LEVELS = [
             "points": ["3 is an int, \"3\" is a str, True is a bool.", "input() always returns a string.", "int(\"12\") turns text into a number before maths.", "Earlier: variables hold any of these types."],
             "example": 'age = input("Age? ")   # "12" (text)\nage = int(age)         # 12 (number)',
         },
-        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Four questions. No terminal - just you.'",
-        goal="Answer every question correctly to unlock the next level.",
-        gameplay="Read the recap, then answer four questions. One or two reach back to earlier sections.",
+        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Six questions. No terminal - just you.'",
+        goal="Get every question right to unlock the next level.",
+        gameplay="Read the recap, then answer six questions. Two of them reach back to earlier sections.",
         dialogue=["Checkpoint drill. Answer all four and the path opens."],
         challenge={
             "type": "quiz",
-            "prompt": "Answer all four questions. You can retry as often as you like.",
+            "prompt": "Answer every question. Wrong answers only tell you which question to look at again - retry as often as you like.",
             "questions": [
-                {"prompt": "What is type(\"3\")?", "options": ["int", "bool", "str", "float"], "answer": 2},
-                {"prompt": "What does input() return, no matter what the user types?", "options": ["A number", "A string", "True or False", "Nothing"], "answer": 1},
-                {"prompt": "Which turns the text \"12\" into the number 12?", "options": ["str(12)", "print(12)", "\"12\" + 1", "int(\"12\")"], "answer": 3},
-                {"prompt": "Earlier section: which line stores the text Ada in a variable called name?", "options": ["name = \"Ada\"", "\"name\" = Ada", "name == \"Ada\"", "print(name)"], "answer": 0}
+                {
+                                "prompt": "What type of value is \"3\" (written WITH quotes)?",
+                                "options": [
+                                                "int - a whole number",
+                                                "str - text",
+                                                "bool - True or False",
+                                                "float - a decimal number"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "What type of value is 3 (written WITHOUT quotes)?",
+                                "options": [
+                                                "str - text",
+                                                "bool - True or False",
+                                                "int - a whole number",
+                                                "None"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "This line runs and the user types 12:\nage = input(\"Age? \")\nWhat is now stored in age?",
+                                "options": [
+                                                "The number 12",
+                                                "The text \"12\"",
+                                                "True",
+                                                "Nothing"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "Which line turns the text \"12\" into the number 12?",
+                                "options": [
+                                                "str(\"12\")",
+                                                "print(\"12\")",
+                                                "int(\"12\")",
+                                                "\"12\" + 0"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "Which of these values is a bool?",
+                                "options": [
+                                                "\"True\" (with quotes)",
+                                                "1",
+                                                "True (no quotes)",
+                                                "\"yes\""
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "From the earlier section: which line stores the text Ada in a variable called name?",
+                                "options": [
+                                                "name = \"Ada\"",
+                                                "\"name\" = Ada",
+                                                "name == \"Ada\"",
+                                                "print(name)"
+                                ],
+                                "answer": 0
+                }
             ],
         },
         reasoning="Retrieval practice on the latest section, plus one or two cumulative questions.",
-        success="All four correct - the path opens.",
+        success="All six correct - the path opens.",
         failure="The drill says which question is wrong, nothing more.",
         explanation="Quotes make strings; input gives strings; int() converts; = stores.",
         reward="Checkpoint Pin II",
@@ -726,7 +838,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill the blanks so the door opens only when the password matches the sign.",
+            "prompt": "Fill the blanks: compare password with the text on the sign, and print the word open (as text) when it matches.",
             "code": ["if password == ___:", "    print(___)"],
             "answers": [["\"lab\""], ["\"open\""]],
             "bank": ["\"lab\"", "lab", "\"open\"", "open", "=="],
@@ -770,7 +882,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "python_lines",
-            "prompt": "Four lines: if badge equals \"red\" print enter, else print denied.",
+            "prompt": "Write four lines: if badge equals the text red, print enter; otherwise (else) print denied. Indent the two print lines.",
             "placeholder": "",
             "patterns": [
                 {"regex": r"if\s+badge\s*==\s*([\"'])red\1\s*:"},
@@ -818,7 +930,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "order_code",
-            "prompt": "Drag the lines into a working if / elif / else.",
+            "prompt": "Drag the six lines into a working if / elif / else. Each opener line must be followed directly by its own indented print.",
             "pieces": [
                 "if level == 3:",
                 '    print("director")',
@@ -851,22 +963,78 @@ PYTHON_LEVELS = [
             "points": ["== compares; = stores.", "if lines end with a colon; the block under it is indented.", "if / elif / else: Python runs the FIRST true branch only.", "Earlier: a bool (True/False) is what a condition produces."],
             "example": 'if level == 3:\n    print("director")\nelif level == 2:\n    print("doctor")\nelse:\n    print("visitor")',
         },
-        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Four questions. No terminal - just you.'",
-        goal="Answer every question correctly to unlock the next level.",
-        gameplay="Read the recap, then answer four questions. One or two reach back to earlier sections.",
+        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Six questions. No terminal - just you.'",
+        goal="Get every question right to unlock the next level.",
+        gameplay="Read the recap, then answer six questions. Two of them reach back to earlier sections.",
         dialogue=["Checkpoint drill. Answer all four and the path opens."],
         challenge={
             "type": "quiz",
-            "prompt": "Answer all four questions. You can retry as often as you like.",
+            "prompt": "Answer every question. Wrong answers only tell you which question to look at again - retry as often as you like.",
             "questions": [
-                {"prompt": "Which symbol asks whether two values are equal?", "options": ["=", ":", "==", "->"], "answer": 2},
-                {"prompt": "In an if / elif / else chain, how many branches run?", "options": ["All the true ones", "Exactly one", "None", "Always the last"], "answer": 1},
-                {"prompt": "What must every if line end with?", "options": ["A colon", "A semicolon", "A full stop", "Nothing"], "answer": 0},
-                {"prompt": "Earlier section: gate_open = True. What type is gate_open?", "options": ["str", "int", "list", "bool"], "answer": 3}
+                {
+                                "prompt": "Which symbol asks \"are these two values equal?\"",
+                                "options": [
+                                                "=",
+                                                ":",
+                                                "==",
+                                                "=>"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "What must be at the end of an if line, for example  if x == 3",
+                                "options": [
+                                                "A colon  :",
+                                                "A semicolon  ;",
+                                                "A full stop  .",
+                                                "Nothing"
+                                ],
+                                "answer": 0
+                },
+                {
+                                "prompt": "level is 2 when this code runs:\nif level == 3:\n    print(\"director\")\nelif level == 2:\n    print(\"doctor\")\nelse:\n    print(\"visitor\")\nWhat is printed?",
+                                "options": [
+                                                "director",
+                                                "doctor",
+                                                "visitor",
+                                                "doctor and then visitor"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "In an if / elif / else chain, how many of the branches run?",
+                                "options": [
+                                                "Every branch whose condition is True",
+                                                "Exactly one - the first branch whose condition is True",
+                                                "None of them",
+                                                "Always the last one"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "Why are the lines underneath an if indented?",
+                                "options": [
+                                                "Indentation is only for looks",
+                                                "It tells Python that those lines belong to the if",
+                                                "It makes the code run faster",
+                                                "Python ignores indentation"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "From the earlier section: gate_open = True. What type is gate_open?",
+                                "options": [
+                                                "str",
+                                                "int",
+                                                "list",
+                                                "bool"
+                                ],
+                                "answer": 3
+                }
             ],
         },
         reasoning="Retrieval practice on the latest section, plus one or two cumulative questions.",
-        success="All four correct - the path opens.",
+        success="All six correct - the path opens.",
         failure="The drill says which question is wrong, nothing more.",
         explanation="== compares, colons open blocks, one branch runs, conditions are bools.",
         reward="Checkpoint Pin III",
@@ -905,7 +1073,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill the blanks so the loop prints checked once per tank.",
+            "prompt": "Fill the blanks so the loop runs once per tank (see the sign) and prints the word checked each time.",
             "code": ["for tank in range(___):", '    print(___)'],
             "answers": [["5"], ['"checked"']],
             "bank": ["5", "tank", '"checked"', "range", "4"],
@@ -949,7 +1117,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill the blanks so the loop prints hiss three times, then stops.",
+            "prompt": "Fill the blanks so the loop prints hiss exactly three times and then stops: pick the limit and how much count grows each pass.",
             "code": ["count = 0", "while count < ___:", '    print("hiss")', "    count = count + ___"],
             "answers": [["3"], ["1"]],
             "bank": ["3", "1", "0", "count"],
@@ -993,7 +1161,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "order_code",
-            "prompt": "The snake is down. Drag the lines into a loop that checks each fireball.",
+            "prompt": "The snake is down. Arrange the five lines into: a for loop, and inside it an if / else that prints safe or hit.",
             "pieces": [
                 "for fireball in range(3):",
                 "    if dodged:",
@@ -1026,22 +1194,78 @@ PYTHON_LEVELS = [
             "points": ["for i in range(n): repeats n times; range(4) is 0,1,2,3.", "while repeats until its condition is False - something inside must change it.", "An if inside a loop is indented one level deeper.", "Earlier: count = count + 1 grows a variable by one."],
             "example": 'count = 0\nwhile count < 3:\n    print("hiss")\n    count = count + 1',
         },
-        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Four questions. No terminal - just you.'",
-        goal="Answer every question correctly to unlock the next level.",
-        gameplay="Read the recap, then answer four questions. One or two reach back to earlier sections.",
+        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Six questions. No terminal - just you.'",
+        goal="Get every question right to unlock the next level.",
+        gameplay="Read the recap, then answer six questions. Two of them reach back to earlier sections.",
         dialogue=["Checkpoint drill. Answer all four and the path opens."],
         challenge={
             "type": "quiz",
-            "prompt": "Answer all four questions. You can retry as often as you like.",
+            "prompt": "Answer every question. Wrong answers only tell you which question to look at again - retry as often as you like.",
             "questions": [
-                {"prompt": "What numbers does range(4) produce?", "options": ["1, 2, 3, 4", "0, 1, 2, 3, 4", "0, 1, 2, 3", "4"], "answer": 2},
-                {"prompt": "When does a while loop stop?", "options": ["After ten passes", "When its condition becomes False", "When print runs", "It never stops"], "answer": 1},
-                {"prompt": "Earlier section: inside a for loop, an if line is indented...", "options": ["Not at all", "The same as the for", "One level deeper than the for", "Two levels deeper"], "answer": 2},
-                {"prompt": "Earlier section: what does count = count + 1 do?", "options": ["Compares count with 1", "Prints count", "Adds one to count", "Starts a loop"], "answer": 2}
+                {
+                                "prompt": "Which numbers does range(4) count through?",
+                                "options": [
+                                                "1, 2, 3, 4",
+                                                "0, 1, 2, 3, 4",
+                                                "0, 1, 2, 3",
+                                                "Only the number 4"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "How many times is hiss printed?\nfor i in range(3):\n    print(\"hiss\")",
+                                "options": [
+                                                "Once",
+                                                "Twice",
+                                                "Three times",
+                                                "Forever"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "When does a while loop stop repeating?",
+                                "options": [
+                                                "After 10 passes",
+                                                "As soon as its condition becomes False",
+                                                "When print runs",
+                                                "It never stops"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "How many times is hiss printed?\ncount = 0\nwhile count < 3:\n    print(\"hiss\")\n    count = count + 1",
+                                "options": [
+                                                "0",
+                                                "2",
+                                                "3",
+                                                "4"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "From the earlier section: an if placed inside a for loop is indented...",
+                                "options": [
+                                                "Not at all",
+                                                "The same amount as the for line",
+                                                "One level deeper than the for line",
+                                                "Two levels deeper than the for line"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "From the earlier section: what does the line  count = count + 1  do?",
+                                "options": [
+                                                "Checks whether count equals 1",
+                                                "Prints count",
+                                                "Makes count one bigger",
+                                                "Starts a loop"
+                                ],
+                                "answer": 2
+                }
             ],
         },
         reasoning="Retrieval practice on the latest section, plus one or two cumulative questions.",
-        success="All four correct - the path opens.",
+        success="All six correct - the path opens.",
         failure="The drill says which question is wrong, nothing more.",
         explanation="range counts from 0; while needs its condition to change; nesting is shown by indentation.",
         reward="Checkpoint Pin IV",
@@ -1080,7 +1304,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill the index so the third specimen prints.",
+            "prompt": "Fill the index number so the THIRD specimen in the list is printed. Remember where Python starts counting.",
             "code": ['specimens = ["viper", "cobra", "python"]', "print(specimens[___])"],
             "answers": [["2"]],
             "bank": ["2", "3", "1", "0"],
@@ -1123,7 +1347,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "order_code",
-            "prompt": "Drag the lines so the program builds, adds, then prints every specimen.",
+            "prompt": "Drag the four lines into order: create the list, add the new specimen, then loop over the list printing each name.",
             "pieces": [
                 'specimens = ["viper", "cobra"]',
                 'specimens.append("adder")',
@@ -1172,7 +1396,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill the key so the east door's status prints.",
+            "prompt": "Fill in the key so the status of the east door is printed. Keys are text.",
             "code": ['doors = {"north": "locked", "east": "open"}', "print(doors[___])"],
             "answers": [['"east"']],
             "bank": ['"east"', "east", "1", '"open"'],
@@ -1215,7 +1439,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "python_lines",
-            "prompt": "Line 1: set doors[\"north\"] to \"open\". Line 2: print doors[\"north\"].",
+            "prompt": "Write two lines: line 1 changes the north door's value to the text open; line 2 prints the north door's value.",
             "placeholder": "",
             "patterns": [
                 {"regex": r"doors\[\s*([\"'])north\1\s*\]\s*=\s*([\"'])open\2"},
@@ -1244,22 +1468,78 @@ PYTHON_LEVELS = [
             "points": ["Lists keep order; the first index is 0.", "append() adds to the end.", "Dictionaries look values up by key: doors[\"east\"].", "Earlier: for item in items: visits each item once."],
             "example": 'items = ["a", "b"]\nitems.append("c")\ndoors = {"east": "open"}\nprint(doors["east"])',
         },
-        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Four questions. No terminal - just you.'",
-        goal="Answer every question correctly to unlock the next level.",
-        gameplay="Read the recap, then answer four questions. One or two reach back to earlier sections.",
+        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Six questions. No terminal - just you.'",
+        goal="Get every question right to unlock the next level.",
+        gameplay="Read the recap, then answer six questions. Two of them reach back to earlier sections.",
         dialogue=["Checkpoint drill. Answer all four and the path opens."],
         challenge={
             "type": "quiz",
-            "prompt": "Answer all four questions. You can retry as often as you like.",
+            "prompt": "Answer every question. Wrong answers only tell you which question to look at again - retry as often as you like.",
             "questions": [
-                {"prompt": "items = [\"a\", \"b\", \"c\"]. What is items[0]?", "options": ["\"b\"", "\"a\"", "\"c\"", "an error"], "answer": 1},
-                {"prompt": "doors[\"east\"] finds a value by its...", "options": ["position", "key", "length", "type"], "answer": 1},
-                {"prompt": "What does items.append(\"d\") do?", "options": ["Removes an item", "Sorts the list", "Prints the list", "Adds \"d\" to the end"], "answer": 3},
-                {"prompt": "Earlier section: how many times does the body of for x in items: run?", "options": ["Once", "Once per item", "Until False", "Always three times"], "answer": 1}
+                {
+                                "prompt": "items = [\"a\", \"b\", \"c\"]\nWhat is items[0]?",
+                                "options": [
+                                                "\"b\"",
+                                                "\"a\"",
+                                                "\"c\"",
+                                                "An error"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "items = [\"a\", \"b\", \"c\"]\nWhat is items[2]?",
+                                "options": [
+                                                "\"b\"",
+                                                "\"a\"",
+                                                "\"c\"",
+                                                "An error - there is no item 2"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "What does items.append(\"d\") do to the list items?",
+                                "options": [
+                                                "Removes \"d\"",
+                                                "Sorts the list",
+                                                "Prints the list",
+                                                "Adds \"d\" to the end of the list"
+                                ],
+                                "answer": 3
+                },
+                {
+                                "prompt": "doors = {\"north\": \"locked\", \"east\": \"open\"}\nWhat is doors[\"east\"]?",
+                                "options": [
+                                                "\"locked\"",
+                                                "\"open\"",
+                                                "1",
+                                                "An error"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "What is the difference between a list and a dictionary?",
+                                "options": [
+                                                "A list finds values by position number; a dictionary finds values by a key (a name)",
+                                                "There is no difference",
+                                                "A dictionary can only hold numbers",
+                                                "A list can never be changed"
+                                ],
+                                "answer": 0
+                },
+                {
+                                "prompt": "From the earlier section: items holds 3 things. How many times does the body of  for name in items:  run?",
+                                "options": [
+                                                "Once",
+                                                "Three times - once per item",
+                                                "Until a condition becomes False",
+                                                "Never"
+                                ],
+                                "answer": 1
+                }
             ],
         },
         reasoning="Retrieval practice on the latest section, plus one or two cumulative questions.",
-        success="All four correct - the path opens.",
+        success="All six correct - the path opens.",
         failure="The drill says which question is wrong, nothing more.",
         explanation="Indexes start at 0, append adds at the end, dictionaries use keys, loops visit each item.",
         reward="Checkpoint Pin V",
@@ -1297,7 +1577,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "python_lines",
-            "prompt": "Line 1: define unlock(). Line 2 (indented): print unlocked. Line 3: call unlock().",
+            "prompt": "Write three lines: line 1 defines a function called unlock with no parameters; line 2 (indented) prints the word unlocked; line 3 calls the function.",
             "placeholder": "",
             "patterns": [
                 {"regex": r"def\s+unlock\s*\(\s*\)\s*:"},
@@ -1343,7 +1623,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "fill_blank",
-            "prompt": "Fill the parameter and the argument.",
+            "prompt": "Fill the two blanks: the parameter name the function body already uses, and the text BYTE passed in when calling it.",
             "code": ["def greet(___):", '    print("Hello, " + name)', "greet(___)"],
             "answers": [["name"], ['"BYTE"']],
             "bank": ["name", '"BYTE"', "greet", '"name"'],
@@ -1474,22 +1754,78 @@ PYTHON_LEVELS = [
             "points": ["def name(): defines; name() runs it.", "A parameter is a variable the function receives when called.", "SyntaxError usually means an unbalanced ( ) or quote - start at the reported line.", "Earlier: trace a loop counter by hand to find bugs that never crash."],
             "example": 'def greet(name):\n    print("Hello, " + name)\n\ngreet("BYTE")',
         },
-        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Four questions. No terminal - just you.'",
-        goal="Answer every question correctly to unlock the next level.",
-        gameplay="Read the recap, then answer four questions. One or two reach back to earlier sections.",
+        story="BYTE blocks the path with a drill. 'Quick check before the next zone. Six questions. No terminal - just you.'",
+        goal="Get every question right to unlock the next level.",
+        gameplay="Read the recap, then answer six questions. Two of them reach back to earlier sections.",
         dialogue=["Checkpoint drill. Answer all four and the path opens."],
         challenge={
             "type": "quiz",
-            "prompt": "Answer all four questions. You can retry as often as you like.",
+            "prompt": "Answer every question. Wrong answers only tell you which question to look at again - retry as often as you like.",
             "questions": [
-                {"prompt": "def greet(): is written. What actually runs the function?", "options": ["def", "greet", "greet()", "print(greet)"], "answer": 2},
-                {"prompt": "SyntaxError: '(' was never closed. Most likely cause?", "options": ["A variable is undefined", "A parenthesis is missing", "A loop runs forever", "The type is wrong"], "answer": 1},
-                {"prompt": "What is a parameter?", "options": ["A variable the function receives", "A print inside a function", "A loop counter", "A file"], "answer": 0},
-                {"prompt": "Earlier section: count = 0, while count < 3, and inside count = count - 1. What happens?", "options": ["Stops after 3 passes", "Never runs", "Runs forever", "SyntaxError"], "answer": 2}
+                {
+                                "prompt": "This code runs and NOTHING is printed:\ndef greet():\n    print(\"hi\")\nWhy?",
+                                "options": [
+                                                "def is spelled wrong",
+                                                "The function was defined but never called - greet() is missing",
+                                                "print needs two arguments",
+                                                "Functions cannot print"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "In  def greet(name):  what is name?",
+                                "options": [
+                                                "A parameter - a variable the function receives when it is called",
+                                                "A print statement",
+                                                "A loop counter",
+                                                "A file name"
+                                ],
+                                "answer": 0
+                },
+                {
+                                "prompt": "Python reports:  SyntaxError: '(' was never closed\nWhat is the most likely cause?",
+                                "options": [
+                                                "A variable is not defined",
+                                                "A closing parenthesis  )  is missing",
+                                                "A loop runs forever",
+                                                "A value has the wrong type"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "What happens when this runs?\ncount = 0\nwhile count < 3:\n    count = count - 1",
+                                "options": [
+                                                "It stops after 3 passes",
+                                                "It never runs at all",
+                                                "It runs forever, because count moves away from 3",
+                                                "SyntaxError"
+                                ],
+                                "answer": 2
+                },
+                {
+                                "prompt": "def greet(name):\n    print(\"Hello, \" + name)\ngreet(\"BYTE\")\nWhat is printed?",
+                                "options": [
+                                                "Hello, name",
+                                                "Hello, BYTE",
+                                                "Nothing - the function is only defined",
+                                                "An error"
+                                ],
+                                "answer": 1
+                },
+                {
+                                "prompt": "From the earlier section: which line reads the value stored under the key \"east\" in doors?",
+                                "options": [
+                                                "doors.east",
+                                                "doors[0]",
+                                                "doors[\"east\"]",
+                                                "doors(\"east\")"
+                                ],
+                                "answer": 2
+                }
             ],
         },
         reasoning="Retrieval practice on the latest section, plus one or two cumulative questions.",
-        success="All four correct - the path opens.",
+        success="All six correct - the path opens.",
         failure="The drill says which question is wrong, nothing more.",
         explanation="Calling runs a function; parameters carry input; errors point to a line; counters must move toward the exit.",
         reward="Checkpoint Pin VI",
@@ -1527,7 +1863,7 @@ PYTHON_LEVELS = [
         ],
         challenge={
             "type": "order_code",
-            "prompt": "Drag all seven lines into a working program.",
+            "prompt": "Drag all seven lines into a working program: define the function (with its if / else body), then a loop that calls it three times.",
             "pieces": [
                 "def check(code):",
                 "    if code == 4172:",
@@ -1548,5 +1884,15 @@ PYTHON_LEVELS = [
         hints=["Which lines are indented twice? They belong inside something indented once."],
         map=LAB_DEEP,
         theme="lab",
+    ),
+
+    obelisk_level(
+        30, "Python", "The Grove", "Grove Master Badge II", "BYTE",
+        "The lab's exit tube opens onto a white plain under a pale sky. BYTE hovers beside a tall obelisk with a single button at its base. 'Every recruit who finishes a course lights one of these.'",
+        [
+            "print, variables, types, input, conditions, loops, lists, dictionaries, functions, debugging.",
+            "Indentation shows what belongs to what; = stores and == compares; quotes make text.",
+            "Read the error, fix one thing, run again.",
+        ],
     ),
 ]
