@@ -1,7 +1,6 @@
 # Secrets and local config - never commit these
 .env
 .env.*
-!.env.example
 
 # Database with user accounts (password hashes, progress)
 *.db

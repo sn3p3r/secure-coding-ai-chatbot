@@ -19,11 +19,11 @@ no image assets: every sprite and badge is drawn with `fillRect`.
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env               # then fill in the values
 python3 app.py                     # http://127.0.0.1:5000
 ```
 
-`.env` values:
+Create a `.env` file next to `app.py` (it is git-ignored) with these
+values, or set them as environment variables:
 
 | Variable            | Purpose                                                        |
 |---------------------|----------------------------------------------------------------|

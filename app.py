@@ -39,7 +39,7 @@ app.secret_key = os.getenv("SECRET_KEY", "change-this-to-a-random-secret-key")
 
 if not os.getenv("SECRET_KEY"):
     print("WARNING: SECRET_KEY is not set in .env - using the development fallback. "
-          "Generate one before deploying (see .env.example).")
+          "Generate one before deploying (see the README).")
 
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
