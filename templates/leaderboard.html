@@ -25,7 +25,7 @@
         </div>
 
         <div class="top-right">
-            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/friends" class="top-link">FRIENDS{% if pending_requests %} <span class="top-badge">{{ pending_requests }}</span>{% endif %}</a>
             <a href="/profile" class="profile-button">
                 <span class="profile-picture">
                     {% include "_avatar.html" %}
@@ -81,6 +81,11 @@
                 </select>
             </label>
 
+            <label class="board-check">
+                <input type="checkbox" name="friends" value="1" {% if friends_only %}checked{% endif %}>
+                <span>FRIENDS ONLY</span>
+            </label>
+
             <button type="submit" class="outline-button">SHOW TIMES</button>
 
         </form>
@@ -127,7 +132,7 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <p class="board-empty">No visible times on this level yet.</p>
+                    <p class="board-empty">{% if friends_only %}None of your friends (or you) has a time on this level yet.{% else %}No visible times on this level yet.{% endif %}</p>
                 {% endif %}
 
                 {% if hidden_me %}

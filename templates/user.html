@@ -25,7 +25,7 @@
         </div>
 
         <div class="top-right">
-            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/friends" class="top-link">FRIENDS{% if pending_requests %} <span class="top-badge">{{ pending_requests }}</span>{% endif %}</a>
             <a href="/profile" class="profile-button">
                 <span class="profile-picture">
                     {% include "_avatar.html" %}
@@ -54,7 +54,15 @@
                 <h1>{{ person.username }}</h1>
 
                 <div class="user-actions">
-                    {% if state == 'friends' %}
+                    {% if state == 'blocked' %}
+                        {% if blocked_by_me %}
+                            <span class="friend-added">BLOCKED</span>
+                            <form method="post" action="{{ url_for('friends_unblock') }}">
+                                <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                <button type="submit" class="friend-action">UNBLOCK</button>
+                            </form>
+                        {% endif %}
+                    {% elif state == 'friends' %}
                         <form method="post" action="{{ url_for('friends_remove') }}">
                             <input type="hidden" name="friend_id" value="{{ person.id }}">
                             <button type="submit" class="friend-action">REMOVE FRIEND</button>
@@ -77,10 +85,40 @@
                             <button type="submit" class="friend-action">ADD FRIEND</button>
                         </form>
                     {% endif %}
+
+                    {% if not blocked_by_me %}
+                        <form method="post" action="{{ url_for('friends_block') }}" onsubmit="return confirm('Block {{ person.username }}? They will not be able to send you requests or open your profile.');">
+                            <input type="hidden" name="friend_id" value="{{ person.id }}">
+                            <button type="submit" class="friend-action friend-quiet">BLOCK</button>
+                        </form>
+                    {% endif %}
+
+                    <details class="report-box">
+                        <summary class="friend-action friend-quiet">REPORT</summary>
+                        <form method="post" action="{{ url_for('report_user', username=person.username) }}" class="report-form">
+                            <label>REASON
+                                <select name="reason" required>
+                                    {% for reason in report_reasons %}
+                                        <option value="{{ reason }}">{{ reason|upper }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label>WHAT HAPPENED (OPTIONAL)
+                                <textarea name="note" maxlength="300" rows="3" placeholder="Up to 300 characters"></textarea>
+                            </label>
+                            <button type="submit" class="outline-button">SEND REPORT</button>
+                        </form>
+                    </details>
                 </div>
             </div>
 
         </section>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="flash {% if category == 'error' %}flash-error{% endif %}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
 
 
         {% if not view.visible %}

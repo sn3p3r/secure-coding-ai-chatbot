@@ -102,6 +102,38 @@ def migrate(conn):
         )
     """)
 
+    # Blocks: one row per "user_id blocked blocked_id".
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS blocks (
+            user_id INTEGER NOT NULL,
+            blocked_id INTEGER NOT NULL,
+            created_at TIMESTAMP,
+            PRIMARY KEY (user_id, blocked_id)
+        )
+    """)
+
+    # Reports about another player, read by the site owner.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reporter_id INTEGER NOT NULL,
+            reported_id INTEGER NOT NULL,
+            reason TEXT NOT NULL,
+            note TEXT,
+            created_at TIMESTAMP
+        )
+    """)
+
+    # Failed-login counters per username and per address.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS login_attempts (
+            key TEXT PRIMARY KEY,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            first_at REAL,
+            locked_until REAL
+        )
+    """)
+
     # Mid-level saves: written every time the player passes a door.
     conn.execute("""
         CREATE TABLE IF NOT EXISTS level_checkpoints (
@@ -776,8 +808,11 @@ def search_users(conn, user_id, query, limit=20):
         (pattern, user_id, limit * 3),
     ).fetchall()
 
+    hidden = blocked_ids(conn, user_id)
     results = []
     for row in rows:
+        if row["id"] in hidden:
+            continue
         if not clean_privacy(_parse_json(row["privacy"]))["search_visible"]:
             continue
         summary = user_summary(conn, row["id"], row["username"], row["avatar"])
@@ -808,6 +843,8 @@ def add_friend(conn, user_id, friend_id):
         return "self"
     if conn.execute("SELECT 1 FROM users WHERE id = ?", (friend_id,)).fetchone() is None:
         return "missing"
+    if is_blocked(conn, user_id, friend_id):
+        return "blocked"
     conn.execute(
         "INSERT OR IGNORE INTO friends (user_id, friend_id, added_at) VALUES (?, ?, ?)",
         (user_id, friend_id, datetime.utcnow().isoformat(timespec="seconds")),
@@ -832,8 +869,12 @@ def remove_friend(conn, user_id, other_id):
 # LEADERBOARD TIMES
 # ---------------------------------------------------------
 
-def level_times(conn, course_slug, level_number, descending=False):
-    """Every player's best time on one level, minus those who opted out."""
+def level_times(conn, course_slug, level_number, descending=False, viewer_id=None, only_ids=None):
+    """
+    Every player's best time on one level, minus those who opted out,
+    minus anyone blocked either way by the viewer, and limited to
+    `only_ids` when given (the friends-only view).
+    """
     rows = conn.execute(
         """
         SELECT users.id AS user_id, users.username AS username, users.avatar AS avatar,
@@ -851,6 +892,8 @@ def level_times(conn, course_slug, level_number, descending=False):
     ).fetchall()
 
     hidden = hidden_from_boards(conn)
+    if viewer_id is not None:
+        hidden |= blocked_ids(conn, viewer_id)
     return [
         {
             "user_id": row["user_id"],
@@ -860,5 +903,166 @@ def level_times(conn, course_slug, level_number, descending=False):
             "completed_at": (row["completed_at"] or "")[:10],
         }
         for row in rows
-        if row["user_id"] not in hidden
+        if row["user_id"] not in hidden and (only_ids is None or row["user_id"] in only_ids)
     ]
+
+
+# ---------------------------------------------------------
+# BLOCKS AND REPORTS
+# ---------------------------------------------------------
+
+REPORT_REASONS = ("spam", "harassment", "inappropriate name or picture", "cheating", "other")
+
+
+def is_blocked(conn, a, b):
+    """True when either person blocked the other."""
+    return conn.execute(
+        "SELECT 1 FROM blocks WHERE (user_id = ? AND blocked_id = ?) OR (user_id = ? AND blocked_id = ?)",
+        (a, b, b, a),
+    ).fetchone() is not None
+
+
+def blocked_by_me(conn, user_id, other_id):
+    return conn.execute(
+        "SELECT 1 FROM blocks WHERE user_id = ? AND blocked_id = ?", (user_id, other_id)
+    ).fetchone() is not None
+
+
+def blocked_ids(conn, user_id):
+    """Everyone this user blocked or was blocked by."""
+    ids = set()
+    for row in conn.execute(
+        "SELECT user_id, blocked_id FROM blocks WHERE user_id = ? OR blocked_id = ?", (user_id, user_id)
+    ).fetchall():
+        ids.add(row["blocked_id"] if row["user_id"] == user_id else row["user_id"])
+    return ids
+
+
+def block_user(conn, user_id, other_id):
+    """Blocking also ends any friendship or pending request between the two."""
+    if other_id == user_id:
+        return "self"
+    if conn.execute("SELECT 1 FROM users WHERE id = ?", (other_id,)).fetchone() is None:
+        return "missing"
+    conn.execute(
+        "INSERT OR IGNORE INTO blocks (user_id, blocked_id, created_at) VALUES (?, ?, ?)",
+        (user_id, other_id, datetime.utcnow().isoformat(timespec="seconds")),
+    )
+    remove_friend(conn, user_id, other_id)
+    return "ok"
+
+
+def unblock_user(conn, user_id, other_id):
+    conn.execute("DELETE FROM blocks WHERE user_id = ? AND blocked_id = ?", (user_id, other_id))
+
+
+def blocked_users(conn, user_id):
+    rows = conn.execute(
+        """
+        SELECT users.id, users.username, users.avatar
+        FROM blocks JOIN users ON users.id = blocks.blocked_id
+        WHERE blocks.user_id = ?
+        ORDER BY users.username
+        """,
+        (user_id,),
+    ).fetchall()
+    return _summaries(conn, rows)
+
+
+def add_report(conn, reporter_id, reported_id, reason, note):
+    """Returns False for an unknown reason or a note that is too long."""
+    if reason not in REPORT_REASONS or reporter_id == reported_id:
+        return False
+    note = (note or "").strip()
+    if len(note) > 300:
+        return False
+    conn.execute(
+        "INSERT INTO reports (reporter_id, reported_id, reason, note, created_at) VALUES (?, ?, ?, ?, ?)",
+        (reporter_id, reported_id, reason, note, datetime.utcnow().isoformat(timespec="seconds")),
+    )
+    return True
+
+
+def pending_request_count(conn, user_id):
+    row = conn.execute(
+        """
+        SELECT COUNT(*) AS n FROM friends
+        WHERE friends.friend_id = ?
+          AND NOT EXISTS (
+              SELECT 1 FROM friends AS mine
+              WHERE mine.user_id = ? AND mine.friend_id = friends.user_id
+          )
+        """,
+        (user_id, user_id),
+    ).fetchone()
+    return row["n"] if row else 0
+
+
+# ---------------------------------------------------------
+# LOGIN RATE LIMITING
+# ---------------------------------------------------------
+
+# kind: (failed attempts allowed, counting window, lock length) in seconds
+LOGIN_LIMITS = {
+    "user": (5, 15 * 60, 5 * 60),      # one username from one address
+    "ip": (100, 15 * 60, 15 * 60),     # everything from one address (shared school networks are large)
+}
+
+
+def login_lock_remaining(conn, key, now):
+    """Seconds until this key may try again, or 0."""
+    row = conn.execute("SELECT locked_until FROM login_attempts WHERE key = ?", (key,)).fetchone()
+    if row and row["locked_until"] and row["locked_until"] > now:
+        return int(row["locked_until"] - now) + 1
+    return 0
+
+
+def login_failed(conn, key, kind, now):
+    """Counts one failure; returns the lock length in seconds when the limit is hit."""
+    limit, window, lock = LOGIN_LIMITS[kind]
+    row = conn.execute("SELECT attempts, first_at FROM login_attempts WHERE key = ?", (key,)).fetchone()
+
+    if row and row["first_at"] and now - row["first_at"] <= window:
+        attempts = row["attempts"] + 1
+        first_at = row["first_at"]
+    else:
+        attempts = 1
+        first_at = now
+
+    locked_until = now + lock if attempts >= limit else None
+    conn.execute(
+        """
+        INSERT INTO login_attempts (key, attempts, first_at, locked_until) VALUES (?, ?, ?, ?)
+        ON CONFLICT (key) DO UPDATE SET attempts = excluded.attempts,
+                                       first_at = excluded.first_at,
+                                       locked_until = excluded.locked_until
+        """,
+        (key, attempts, first_at, locked_until),
+    )
+    return lock if locked_until else 0
+
+
+def login_succeeded(conn, key):
+    conn.execute("DELETE FROM login_attempts WHERE key = ?", (key,))
+
+
+# ---------------------------------------------------------
+# ACCOUNT
+# ---------------------------------------------------------
+
+def set_password_hash(conn, user_id, password_hash):
+    conn.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+
+
+def delete_user(conn, user_id):
+    """Removes the account and everything that points at it."""
+    for table, column in (
+        ("level_progress", "user_id"),
+        ("level_checkpoints", "user_id"),
+        ("achievements", "user_id"),
+        ("reports", "reporter_id"),
+    ):
+        conn.execute("DELETE FROM %s WHERE %s = ?" % (table, column), (user_id,))
+    conn.execute("DELETE FROM friends WHERE user_id = ? OR friend_id = ?", (user_id, user_id))
+    conn.execute("DELETE FROM blocks WHERE user_id = ? OR blocked_id = ?", (user_id, user_id))
+    conn.execute("DELETE FROM users WHERE id = ?", (user_id,))

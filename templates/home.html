@@ -20,7 +20,7 @@
         </div>
 
         <div class="top-right">
-            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/friends" class="top-link">FRIENDS{% if pending_requests %} <span class="top-badge">{{ pending_requests }}</span>{% endif %}</a>
             <a href="/profile" class="profile-button">
                 <span class="profile-picture">{% include "_avatar.html" %}</span>
                 <span>{{ username|upper }}</span>

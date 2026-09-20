@@ -71,6 +71,12 @@
                 </div>
 
 
+                {% with messages = get_flashed_messages() %}
+                    {% for message in messages %}
+                        <p class="login-notice">{{ message }}</p>
+                    {% endfor %}
+                {% endwith %}
+
                 {% if error %}
                     <p class="login-error">
                         {{ error }}

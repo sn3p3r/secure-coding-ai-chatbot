@@ -65,7 +65,13 @@ takes a profile picture (PNG/JPEG/GIF/WebP, 2 MB) and decides who can
 open your profile, see your progress, achievements and time spent,
 find you in search, and see your times on the leaderboard. The
 leaderboard lists every player's best time on one chosen level, fastest
-or slowest first. Every signed-in page ends with a short FAQ, and the
+or slowest first, with a friends-only switch. A pending request shows as
+a badge on FRIENDS. From another player's page you can block them (they
+can no longer request, search or open you) or report them (stored in
+the database and `data/reports.jsonl` for the site owner). The account
+section changes the password or deletes the account with everything in
+it. Five wrong passwords lock a username for five minutes. Uploaded
+pictures are shrunk to a 256 px square when Pillow is installed. Every signed-in page ends with a short FAQ, and the
 SecureMentor tab peeks up from the bottom-right corner on each page load.
 
 ## Project layout

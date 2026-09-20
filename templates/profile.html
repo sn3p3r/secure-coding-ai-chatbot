@@ -35,7 +35,7 @@
 
         <div class="top-right">
 
-            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/friends" class="top-link">FRIENDS{% if pending_requests %} <span class="top-badge">{{ pending_requests }}</span>{% endif %}</a>
 
             <div class="profile-button">
 
@@ -392,6 +392,45 @@
                 <p class="form-hint">Friends are people who added you back. You always see everything on your own profile.</p>
 
             </form>
+
+
+            <p class="section-label">ACCOUNT</p>
+
+            <div class="account-grid">
+
+                <form method="post" action="{{ url_for('profile_password') }}" class="account-form">
+                    <h3>Change password</h3>
+                    <label>CURRENT PASSWORD
+                        <input type="password" name="current_password" autocomplete="current-password" required>
+                    </label>
+                    <label>NEW PASSWORD
+                        <input type="password" name="new_password" autocomplete="new-password" minlength="8" required>
+                    </label>
+                    <label>REPEAT NEW PASSWORD
+                        <input type="password" name="confirm_password" autocomplete="new-password" minlength="8" required>
+                    </label>
+                    <p class="form-hint">Same rules as sign-up: 8+ characters with upper and lower case, a number and a symbol.</p>
+                    <div class="picture-actions">
+                        <button type="submit" class="outline-button">CHANGE PASSWORD</button>
+                    </div>
+                </form>
+
+                <form method="post" action="{{ url_for('profile_delete') }}" class="account-form account-danger" onsubmit="return confirm('Delete your account and every level, badge, time and friend? This cannot be undone.');">
+                    <h3>Delete account</h3>
+                    <p class="form-hint">Removes your account, progress, badges, times, friends and picture for good. There is no undo.</p>
+                    <label>YOUR PASSWORD
+                        <input type="password" name="password" autocomplete="current-password" required>
+                    </label>
+                    <label class="check-row">
+                        <input type="checkbox" name="confirm" required>
+                        <span>I understand this deletes everything.</span>
+                    </label>
+                    <div class="picture-actions">
+                        <button type="submit" class="outline-button danger-button">DELETE MY ACCOUNT</button>
+                    </div>
+                </form>
+
+            </div>
 
         </section>
 

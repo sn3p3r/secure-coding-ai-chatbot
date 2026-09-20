@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 from functools import wraps
 import math
+import io
 import os
 import time
 from collections import Counter
@@ -56,6 +57,17 @@ AVATAR_TYPES = {"png": "image/png", "jpg": "image/jpeg", "gif": "image/gif", "we
 
 # Requests bigger than this are refused before any view runs.
 app.config["MAX_CONTENT_LENGTH"] = AVATAR_MAX_BYTES + 256 * 1024
+
+# Uploaded pictures are shrunk to this square (PNG) when Pillow is installed.
+AVATAR_SIZE = 256
+
+try:
+    from PIL import Image, ImageOps, UnidentifiedImageError
+except ImportError:  # the game still works; pictures are then stored as uploaded
+    Image = None
+
+# Reports about players are also appended here for the site owner.
+REPORTS_FILE = os.getenv("ACADEMY_REPORTS_FILE", os.path.join("data", "reports.jsonl"))
 
 # Allowed values for the pixel character (validated server-side).
 CHARACTER_OPTIONS = {
@@ -118,6 +130,7 @@ def inject_account():
     row = conn.execute(
         "SELECT id, username, avatar, time_spent FROM users WHERE id = ?", (session["user_id"],)
     ).fetchone()
+    pending = progress_db.pending_request_count(conn, session["user_id"]) if row else 0
     conn.close()
 
     if row is None:
@@ -128,7 +141,35 @@ def inject_account():
         "me": row["id"],
         "avatar_url": avatar_url_for(row["id"], row["avatar"]),
         "time_spent": int(row["time_spent"] or 0),
+        "pending_requests": pending,
     }
+
+
+def shrink_picture(data):
+    """
+    Returns (png_bytes, "png") for a picture cut to a centred
+    AVATAR_SIZE square, or None when the bytes are not a readable image.
+    Without Pillow the original bytes are kept.
+    """
+    extension = sniff_image(data[:16])
+    if extension is None:
+        return None
+
+    if Image is None:
+        return data, extension
+
+    try:
+        with Image.open(io.BytesIO(data)) as picture:
+            picture.load()
+            picture = ImageOps.exif_transpose(picture)
+            picture = picture.convert("RGBA")
+            picture = ImageOps.fit(picture, (AVATAR_SIZE, AVATAR_SIZE), method=Image.Resampling.LANCZOS)
+            output = io.BytesIO()
+            picture.save(output, format="PNG", optimize=True)
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        return None
+
+    return output.getvalue(), "png"
 
 
 def sniff_image(head):
@@ -156,8 +197,28 @@ def delete_avatar_files(user_id):
 
 
 # ---------------------------------------------------------
-# PASSWORD ENTROPY
+# PASSWORD RULES
 # ---------------------------------------------------------
+
+def password_problem(password):
+    """The sign-up rule a password breaks, or None when it is acceptable."""
+    if len(password) < 8:
+        return "Password must be at least 8 characters."
+    if not any(char.isupper() for char in password):
+        return "Password must contain an uppercase letter."
+    if not any(char.islower() for char in password):
+        return "Password must contain a lowercase letter."
+    if not any(char.isdigit() for char in password):
+        return "Password must contain a number."
+    if not any(not char.isalnum() for char in password):
+        return "Password must contain a special character."
+    if calculate_entropy(password) < 3.5:
+        return "Password entropy must be at least 3.5 bits per character."
+    return None
+
+
+def client_address():
+    return request.headers.get("X-Forwarded-For", request.remote_addr or "?").split(",")[0].strip()[:64]
 
 def calculate_entropy(text):
     """
@@ -213,27 +274,43 @@ def login():
 
         conn = get_db()
 
+        # Too many wrong passwords lock this username (from this address)
+        # for a few minutes; a flood from one address locks the address.
+        now = time.time()
+        address = client_address()
+        keys = {"user": "user:%s|%s" % (address, username.lower()), "ip": "ip:" + address}
+
+        wait = max(progress_db.login_lock_remaining(conn, key, now) for key in keys.values())
+        if wait:
+            conn.close()
+            return render_template(
+                "login.html",
+                error="Too many attempts. Try again in %d minute%s." % ((wait + 59) // 60, "" if wait <= 60 else "s")
+            )
+
         user = conn.execute(
             "SELECT * FROM users WHERE username = ?",
             (username,)
         ).fetchone()
 
+        if user is None or not check_password_hash(user["password_hash"], password):
+            locked = max(progress_db.login_failed(conn, key, kind, now) for kind, key in keys.items())
+            conn.commit()
+            conn.close()
+            if locked:
+                return render_template(
+                    "login.html",
+                    error="Too many attempts. Try again in %d minutes." % ((locked + 59) // 60)
+                )
+            return render_template(
+                "login.html",
+                error="Username or password is incorrect."
+            )
+
+        for key in keys.values():
+            progress_db.login_succeeded(conn, key)
+        conn.commit()
         conn.close()
-
-        if user is None:
-            return render_template(
-                "login.html",
-                error="Username or password is incorrect."
-            )
-
-        if not check_password_hash(
-            user["password_hash"],
-            password
-        ):
-            return render_template(
-                "login.html",
-                error="Username or password is incorrect."
-            )
 
         session["user_id"] = user["id"]
         session["username"] = user["username"]
@@ -270,51 +347,13 @@ def signup():
                 error="Username must be at least 3 characters."
             )
 
-        # Password length
-        if len(password) < 8:
+        # Length, character classes and Shannon entropy
+        problem = password_problem(password)
+
+        if problem:
             return render_template(
                 "signup.html",
-                error="Password must be at least 8 characters."
-            )
-
-        # Uppercase requirement
-        if not any(char.isupper() for char in password):
-            return render_template(
-                "signup.html",
-                error="Password must contain an uppercase letter."
-            )
-
-        # Lowercase requirement
-        if not any(char.islower() for char in password):
-            return render_template(
-                "signup.html",
-                error="Password must contain a lowercase letter."
-            )
-
-        # Number requirement
-        if not any(char.isdigit() for char in password):
-            return render_template(
-                "signup.html",
-                error="Password must contain a number."
-            )
-
-        # Special-character requirement
-        if not any(not char.isalnum() for char in password):
-            return render_template(
-                "signup.html",
-                error="Password must contain a special character."
-            )
-
-        # Shannon entropy requirement
-        password_entropy = calculate_entropy(password)
-
-        if password_entropy < 3.5:
-            return render_template(
-                "signup.html",
-                error=(
-                    "Password entropy must be at least "
-                    "3.5 bits per character."
-                )
+                error=problem
             )
 
         # Confirm password
@@ -573,11 +612,12 @@ def profile_picture():
         flash("That file is too big. Pictures must be 2 MB or smaller.", "error")
         return redirect(url_for("profile", tab="settings"))
 
-    extension = sniff_image(data[:16])
-    if extension is None:
+    shrunk = shrink_picture(data)
+    if shrunk is None:
         flash("That file is not a PNG, JPEG, GIF or WebP image.", "error")
         return redirect(url_for("profile", tab="settings"))
 
+    data, extension = shrunk
     user_id = session["user_id"]
     tag = "%s-%d" % (extension, int(time.time()))
 
@@ -622,6 +662,139 @@ def profile_privacy():
     return redirect(url_for("profile", tab="settings"))
 
 
+@app.route("/profile/password", methods=["POST"])
+@login_required
+def profile_password():
+    current = request.form.get("current_password", "")
+    new = request.form.get("new_password", "")
+    confirm = request.form.get("confirm_password", "")
+
+    conn = get_db()
+    user = conn.execute("SELECT password_hash FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+    if user is None or not check_password_hash(user["password_hash"], current):
+        conn.close()
+        flash("Your current password is not right.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    problem = password_problem(new) or ("New passwords do not match." if new != confirm else None)
+    if problem:
+        conn.close()
+        flash(problem, "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    progress_db.set_password_hash(conn, session["user_id"], generate_password_hash(new))
+    conn.commit()
+    conn.close()
+
+    flash("Password changed.")
+    return redirect(url_for("profile", tab="settings"))
+
+
+@app.route("/profile/delete", methods=["POST"])
+@login_required
+def profile_delete():
+    password = request.form.get("password", "")
+
+    if request.form.get("confirm") != "on":
+        flash("Tick the box to confirm you want to delete the account.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    conn = get_db()
+    user = conn.execute("SELECT password_hash FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+    if user is None or not check_password_hash(user["password_hash"], password):
+        conn.close()
+        flash("Your password is not right, so nothing was deleted.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    user_id = session["user_id"]
+    delete_avatar_files(user_id)
+    progress_db.delete_user(conn, user_id)
+    conn.commit()
+    conn.close()
+
+    session.clear()
+    flash("Your account and all its progress were deleted.")
+    return redirect(url_for("login"))
+
+
+@app.route("/friends/block", methods=["POST"])
+@login_required
+def friends_block():
+    other_id = friend_id_from_form()
+
+    conn = get_db()
+    outcome = progress_db.block_user(conn, session["user_id"], other_id)
+    conn.commit()
+    conn.close()
+
+    if outcome == "missing":
+        abort(404)
+    if outcome == "self":
+        return render_friends(error="You can't block yourself.")
+
+    flash("Blocked. They can't send you requests or open your profile any more.")
+    return redirect(url_for("friends", tab="blocked"))
+
+
+@app.route("/friends/unblock", methods=["POST"])
+@login_required
+def friends_unblock():
+    other_id = friend_id_from_form()
+
+    conn = get_db()
+    progress_db.unblock_user(conn, session["user_id"], other_id)
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("friends", tab="blocked"))
+
+
+@app.route("/u/<username>/report", methods=["POST"])
+@login_required
+def report_user(username):
+    conn = get_db()
+    person = progress_db.get_user_by_name(conn, username)
+
+    if person is None or person["id"] == session["user_id"]:
+        conn.close()
+        abort(404)
+
+    reason = request.form.get("reason", "")
+    note = request.form.get("note", "")
+
+    if not progress_db.add_report(conn, session["user_id"], person["id"], reason, note):
+        conn.close()
+        flash("Pick a reason and keep the note under 300 characters.", "error")
+        return redirect(url_for("public_profile", username=username))
+
+    conn.commit()
+    conn.close()
+
+    save_report_to_file(session.get("username", ""), username, reason, note)
+
+    flash("Thanks. The report was sent to the Academy staff.")
+    return redirect(url_for("public_profile", username=username))
+
+
+def save_report_to_file(reporter, reported, reason, note):
+    """Appends the report to data/reports.jsonl (git-ignored) for the site owner."""
+    import json as _json
+    try:
+        os.makedirs(os.path.dirname(REPORTS_FILE), exist_ok=True)
+        with open(REPORTS_FILE, "a", encoding="utf-8") as handle:
+            handle.write(_json.dumps({
+                "reporter": reporter,
+                "reported": reported,
+                "reason": reason,
+                "note": (note or "").strip(),
+                "at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }, ensure_ascii=False) + "\n")
+    except OSError as error:
+        print("Could not write the reports file:", error)
+
+
 @app.route("/u/<username>")
 @login_required
 def public_profile(username):
@@ -639,8 +812,11 @@ def public_profile(username):
     privacy = progress_db.get_privacy(conn, person["id"])
     relation = progress_db.relation_between(conn, session["user_id"], person["id"])
     state = progress_db.friend_state(conn, session["user_id"], person["id"])
+    blocked_by_me = progress_db.blocked_by_me(conn, session["user_id"], person["id"])
+    blocked = blocked_by_me or progress_db.is_blocked(conn, session["user_id"], person["id"])
 
-    view = {"visible": progress_db.allowed(privacy["profile_visibility"], relation)}
+    # Someone who blocked you (or whom you blocked) is simply private to you.
+    view = {"visible": (not blocked) and progress_db.allowed(privacy["profile_visibility"], relation)}
 
     if view["visible"]:
         if progress_db.allowed(privacy["show_progress"], relation):
@@ -668,8 +844,10 @@ def public_profile(username):
         person=person,
         person_avatar=avatar_url_for(person["id"], person["avatar"]),
         relation=relation,
-        state=state,
+        state="blocked" if blocked else state,
+        blocked_by_me=blocked_by_me,
         view=view,
+        report_reasons=progress_db.REPORT_REASONS,
         courses=[COURSES[slug] for slug in COURSE_ORDER],
     )
 
@@ -988,9 +1166,10 @@ def render_friends(query="", error=None, tab=None):
     friends = progress_db.friends_of(conn, user_id)
     incoming = progress_db.incoming_requests(conn, user_id)
     sent = progress_db.sent_requests(conn, user_id)
+    blocked = progress_db.blocked_users(conn, user_id)
     conn.close()
 
-    if tab not in ("friends", "requests", "sent", "search"):
+    if tab not in ("friends", "requests", "sent", "search", "blocked"):
         tab = "search" if query else "friends"
 
     return render_template(
@@ -1000,6 +1179,7 @@ def render_friends(query="", error=None, tab=None):
         friends=friends,
         incoming=incoming,
         sent=sent,
+        blocked=blocked,
         tab=tab,
         courses=[COURSES[slug] for slug in COURSE_ORDER],
         error=error,
@@ -1034,6 +1214,8 @@ def friends_add():
         abort(404)
     if outcome == "self":
         return render_friends(error="You can't add yourself - you're already on your own side.")
+    if outcome == "blocked":
+        return render_friends(error="You can't add this person.")
 
     if outcome == "friends":
         flash("You are now friends.")
@@ -1081,6 +1263,7 @@ def leaderboard():
     course_slug = request.args.get("course", "")
     course = get_course(course_slug) if course_slug else None
     descending = request.args.get("order") == "desc"
+    friends_only = request.args.get("friends") == "1"
     submitted = "course" in request.args
 
     error = None
@@ -1100,7 +1283,14 @@ def leaderboard():
         if level is None:
             error = "That level does not exist in this course."
         else:
-            times = progress_db.level_times(conn, course_slug, level["number"], descending)
+            only_ids = None
+            if friends_only:
+                only_ids = {person["id"] for person in progress_db.friends_of(conn, session["user_id"])}
+                only_ids.add(session["user_id"])
+            times = progress_db.level_times(
+                conn, course_slug, level["number"], descending,
+                viewer_id=session["user_id"], only_ids=only_ids,
+            )
             mine = progress_db.course_progress(conn, session["user_id"], course_slug)["times"].get(level["number"])
 
     conn.close()
@@ -1117,6 +1307,7 @@ def leaderboard():
         course=course,
         level=level,
         descending=descending,
+        friends_only=friends_only,
         times=times,
         mine=mine,
         hidden_me=not privacy["leaderboard_times"],
