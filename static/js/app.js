@@ -4,8 +4,24 @@
 
 const TIME_KEY = "cyberAcademyTime";
 
+const timeElement =
+    document.getElementById("time-spent");
+
+// The server keeps the count that other players may see; the local
+// counter only bridges the seconds between two pings.
+const serverSeconds =
+    timeElement ? Number(timeElement.dataset.seconds || 0) : 0;
+
+let localSeconds = 0;
+
+try {
+    localSeconds = Number(localStorage.getItem(TIME_KEY)) || 0;
+} catch (error) {
+    localSeconds = 0;
+}
+
 let totalSeconds =
-    Number(localStorage.getItem(TIME_KEY)) || 0;
+    Math.max(localSeconds, serverSeconds);
 
 
 function formatTime(seconds) {
@@ -57,10 +73,11 @@ setInterval(() => {
 
     totalSeconds++;
 
-    localStorage.setItem(
-        TIME_KEY,
-        totalSeconds
-    );
+    try {
+        localStorage.setItem(TIME_KEY, totalSeconds);
+    } catch (error) {
+        // private mode: the server count still grows through the pings
+    }
 
     updateTimeDisplays();
 
@@ -68,6 +85,130 @@ setInterval(() => {
 
 
 updateTimeDisplays();
+
+
+/*
+ * Every 30 s tell the server the page is still open. The server adds
+ * the real gap since the last ping; nothing here can inflate it.
+ */
+if (timeElement && timeElement.dataset.seconds !== undefined) {
+
+    const ping = function() {
+
+        fetch("/api/time/ping", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ seconds: totalSeconds })
+        }).catch(() => {});
+    };
+
+    ping();
+
+    setInterval(ping, 30000);
+}
+
+
+/* =========================================================
+   TABS (profile, friends)
+========================================================= */
+
+document.querySelectorAll("[data-tabs]").forEach((nav) => {
+
+    const buttons =
+        nav.querySelectorAll("[data-tab]");
+
+    const panels =
+        document.querySelectorAll("[data-panel]");
+
+    function show(name) {
+
+        buttons.forEach((button) => {
+            button.classList.toggle("is-active", button.dataset.tab === name);
+        });
+
+        panels.forEach((panel) => {
+            panel.hidden = panel.dataset.panel !== name;
+        });
+    }
+
+    buttons.forEach((button) => {
+
+        button.addEventListener("click", function() {
+            show(button.dataset.tab);
+            history.replaceState(null, "", "#" + button.dataset.tab);
+        });
+    });
+
+    const fromHash =
+        location.hash.slice(1);
+
+    if (fromHash && Array.from(buttons).some((b) => b.dataset.tab === fromHash)) {
+        show(fromHash);
+    }
+});
+
+
+/* =========================================================
+   LEADERBOARD: the level box follows the chosen course
+========================================================= */
+
+const boardCourse =
+    document.getElementById("board-course");
+
+const boardLevel =
+    document.getElementById("board-level");
+
+const levelsData =
+    document.getElementById("levels-data");
+
+if (boardCourse && boardLevel && levelsData) {
+
+    let levelsByCourse = {};
+
+    try {
+        levelsByCourse = JSON.parse(levelsData.textContent);
+    } catch (error) {
+        levelsByCourse = {};
+    }
+
+    function fillLevels() {
+
+        const levels =
+            levelsByCourse[boardCourse.value] || [];
+
+        const previous =
+            boardLevel.value;
+
+        boardLevel.innerHTML = "";
+
+        if (!levels.length) {
+
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "Choose a course first";
+            boardLevel.appendChild(option);
+            boardLevel.disabled = true;
+            return;
+        }
+
+        levels.forEach((level) => {
+
+            const option = document.createElement("option");
+            option.value = String(level.number);
+            option.textContent =
+                String(level.number).padStart(2, "0") + " · " + level.title + (level.kind === "quiz" ? " (quiz)" : "");
+            boardLevel.appendChild(option);
+        });
+
+        boardLevel.disabled = false;
+
+        if (levels.some((level) => String(level.number) === previous)) {
+            boardLevel.value = previous;
+        }
+    }
+
+    boardCourse.addEventListener("change", fillLevels);
+}
 
 
 /* =========================================================
@@ -456,6 +597,22 @@ function buildMentorActions() {
     });
 
     mentorActions.classList.remove("hidden");
+}
+
+
+/*
+ * On every page load the tab rises for a moment so new players learn
+ * where SecureMentor lives, then settles back into the corner.
+ */
+
+const mentorDock =
+    document.getElementById("mentor-dock");
+
+if (mentorDock) {
+
+    setTimeout(() => mentorDock.classList.add("peek"), 600);
+
+    setTimeout(() => mentorDock.classList.remove("peek"), 3400);
 }
 
 

@@ -9,7 +9,8 @@ COPY . .
 
 ENV FLASK_DEBUG=0 \
     PORT=8000 \
-    ACADEMY_DB=/data/academy.db
+    ACADEMY_DB=/data/academy.db \
+    ACADEMY_AVATARS_DIR=/data/avatars
 
 # Mount a volume at /data so accounts and progress survive restarts.
 VOLUME ["/data"]

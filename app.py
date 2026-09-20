@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort, flash, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 from functools import wraps
@@ -49,6 +49,14 @@ app.config.update(
 # ACADEMY_DB lets a deployment keep the database on a persistent disk.
 DATABASE = os.getenv("ACADEMY_DB", "academy.db")
 
+# Profile pictures live next to the database, never in git.
+AVATAR_DIR = os.getenv("ACADEMY_AVATARS_DIR", os.path.join("data", "avatars"))
+AVATAR_MAX_BYTES = 2 * 1024 * 1024
+AVATAR_TYPES = {"png": "image/png", "jpg": "image/jpeg", "gif": "image/gif", "webp": "image/webp"}
+
+# Requests bigger than this are refused before any view runs.
+app.config["MAX_CONTENT_LENGTH"] = AVATAR_MAX_BYTES + 256 * 1024
+
 # Allowed values for the pixel character (validated server-side).
 CHARACTER_OPTIONS = {
     "gender": ["male", "female", "nonbinary"],
@@ -88,6 +96,63 @@ def init_db():
     progress_db.migrate(conn)
 
     conn.close()
+
+
+# ---------------------------------------------------------
+# ACCOUNT CONTEXT (top bar avatar + time, on every page)
+# ---------------------------------------------------------
+
+def avatar_url_for(user_id, tag):
+    """URL of a stored picture; the tag doubles as a cache-buster."""
+    if not tag:
+        return None
+    return url_for("avatar", user_id=user_id) + "?v=" + tag
+
+
+@app.context_processor
+def inject_account():
+    if "user_id" not in session:
+        return {}
+
+    conn = get_db()
+    row = conn.execute(
+        "SELECT id, username, avatar, time_spent FROM users WHERE id = ?", (session["user_id"],)
+    ).fetchone()
+    conn.close()
+
+    if row is None:
+        return {}
+
+    return {
+        "username": row["username"],
+        "me": row["id"],
+        "avatar_url": avatar_url_for(row["id"], row["avatar"]),
+        "time_spent": int(row["time_spent"] or 0),
+    }
+
+
+def sniff_image(head):
+    """Image type from the first bytes - the file name is never trusted."""
+    if head.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "png"
+    if head.startswith(b"\xff\xd8\xff"):
+        return "jpg"
+    if head.startswith((b"GIF87a", b"GIF89a")):
+        return "gif"
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return "webp"
+    return None
+
+
+def avatar_path(user_id, tag):
+    return os.path.join(AVATAR_DIR, "%d.%s" % (user_id, tag.split("-")[0]))
+
+
+def delete_avatar_files(user_id):
+    for extension in AVATAR_TYPES:
+        path = os.path.join(AVATAR_DIR, "%d.%s" % (user_id, extension))
+        if os.path.isfile(path):
+            os.remove(path)
 
 
 # ---------------------------------------------------------
@@ -437,6 +502,7 @@ def profile():
     idea = progress_db.get_idea(conn, user["id"])
     language = progress_db.get_language(conn, user["id"])
     beams = progress_db.finished_courses(conn, user["id"])
+    privacy = progress_db.get_privacy(conn, user["id"])
     conn.close()
 
     total_levels = sum(p["total"] for p in all_progress.values())
@@ -453,9 +519,176 @@ def profile():
         idea=idea,
         language=language,
         beams=beams,
+        privacy=privacy,
+        privacy_levels=progress_db.PRIVACY_LEVELS,
+        tab="settings" if request.args.get("tab") == "settings" else "overview",
         levels_done=levels_done,
         overall_percent=round(levels_done / total_levels * 100) if total_levels else 0,
     )
+
+
+# ---------------------------------------------------------
+# PROFILE PICTURE + PRIVACY + PUBLIC PROFILE
+# ---------------------------------------------------------
+
+@app.route("/avatar/<int:user_id>")
+@login_required
+def avatar(user_id):
+    conn = get_db()
+    tag = progress_db.get_avatar(conn, user_id)
+    conn.close()
+
+    extension = (tag or "").split("-")[0]
+    if extension not in AVATAR_TYPES:
+        abort(404)
+
+    path = avatar_path(user_id, tag)
+    if not os.path.isfile(path):
+        abort(404)
+
+    response = send_file(os.path.abspath(path), mimetype=AVATAR_TYPES[extension], max_age=3600)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Content-Disposition"] = "inline"
+    return response
+
+
+@app.errorhandler(413)
+def upload_too_large(_error):
+    flash("That file is too big. Pictures must be 2 MB or smaller.", "error")
+    return redirect(url_for("profile", tab="settings"))
+
+
+@app.route("/profile/picture", methods=["POST"])
+@login_required
+def profile_picture():
+    upload = request.files.get("picture")
+
+    if upload is None or not upload.filename:
+        flash("Choose an image file first.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    data = upload.read(AVATAR_MAX_BYTES + 1)
+
+    if len(data) > AVATAR_MAX_BYTES:
+        flash("That file is too big. Pictures must be 2 MB or smaller.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    extension = sniff_image(data[:16])
+    if extension is None:
+        flash("That file is not a PNG, JPEG, GIF or WebP image.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    user_id = session["user_id"]
+    tag = "%s-%d" % (extension, int(time.time()))
+
+    os.makedirs(AVATAR_DIR, exist_ok=True)
+    delete_avatar_files(user_id)
+    with open(avatar_path(user_id, tag), "wb") as handle:
+        handle.write(data)
+
+    conn = get_db()
+    progress_db.set_avatar(conn, user_id, tag)
+    conn.commit()
+    conn.close()
+
+    flash("Profile picture updated.")
+    return redirect(url_for("profile", tab="settings"))
+
+
+@app.route("/profile/picture/remove", methods=["POST"])
+@login_required
+def profile_picture_remove():
+    user_id = session["user_id"]
+    delete_avatar_files(user_id)
+
+    conn = get_db()
+    progress_db.set_avatar(conn, user_id, None)
+    conn.commit()
+    conn.close()
+
+    flash("Profile picture removed.")
+    return redirect(url_for("profile", tab="settings"))
+
+
+@app.route("/profile/privacy", methods=["POST"])
+@login_required
+def profile_privacy():
+    conn = get_db()
+    progress_db.set_privacy(conn, session["user_id"], request.form, from_form=True)
+    conn.commit()
+    conn.close()
+
+    flash("Privacy settings saved.")
+    return redirect(url_for("profile", tab="settings"))
+
+
+@app.route("/u/<username>")
+@login_required
+def public_profile(username):
+    conn = get_db()
+    person = progress_db.get_user_by_name(conn, username)
+
+    if person is None:
+        conn.close()
+        abort(404)
+
+    if person["id"] == session["user_id"]:
+        conn.close()
+        return redirect(url_for("profile"))
+
+    privacy = progress_db.get_privacy(conn, person["id"])
+    relation = progress_db.relation_between(conn, session["user_id"], person["id"])
+    state = progress_db.friend_state(conn, session["user_id"], person["id"])
+
+    view = {"visible": progress_db.allowed(privacy["profile_visibility"], relation)}
+
+    if view["visible"]:
+        if progress_db.allowed(privacy["show_progress"], relation):
+            all_progress = progress_db.all_progress(conn, person["id"])
+            total = sum(p["total"] for p in all_progress.values())
+            done = sum(p["levels_done"] for p in all_progress.values())
+            view["progress"] = all_progress
+            view["levels_done"] = done
+            view["percent"] = round(done / total * 100) if total else 0
+
+        if progress_db.allowed(privacy["show_achievements"], relation):
+            secrets = achievements.profile_view(conn, person["id"])
+            view["badges"] = progress_db.badge_collection(conn, person["id"])
+            view["beams"] = progress_db.finished_courses(conn, person["id"])
+            view["secrets_earned"] = sum(1 for item in secrets if item["earned"])
+            view["secrets_total"] = len(secrets)
+
+        if progress_db.allowed(privacy["show_time"], relation):
+            view["time"] = int(person["time_spent"] or 0)
+
+    conn.close()
+
+    return render_template(
+        "user.html",
+        person=person,
+        person_avatar=avatar_url_for(person["id"], person["avatar"]),
+        relation=relation,
+        state=state,
+        view=view,
+        courses=[COURSES[slug] for slug in COURSE_ORDER],
+    )
+
+
+@app.route("/api/time/ping", methods=["POST"])
+@login_required
+def time_ping():
+    """The browser calls this every 30 s while a page is open."""
+    data = request.get_json(silent=True) or {}
+    claimed = data.get("seconds")
+    if isinstance(claimed, bool) or not isinstance(claimed, (int, float)):
+        claimed = None
+
+    conn = get_db()
+    total = progress_db.add_time(conn, session["user_id"], time.time(), claimed)
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "seconds": total})
 
 # ---------------------------------------------------------
 # GAME
@@ -748,19 +981,26 @@ def course_level(course_slug, number):
 # FRIENDS
 # ---------------------------------------------------------
 
-def render_friends(query="", error=None):
+def render_friends(query="", error=None, tab=None):
+    user_id = session["user_id"]
     conn = get_db()
-    results = progress_db.search_users(conn, session["user_id"], query) if query else None
-    friends = progress_db.friends_of(conn, session["user_id"])
+    results = progress_db.search_users(conn, user_id, query) if query else None
+    friends = progress_db.friends_of(conn, user_id)
+    incoming = progress_db.incoming_requests(conn, user_id)
+    sent = progress_db.sent_requests(conn, user_id)
     conn.close()
+
+    if tab not in ("friends", "requests", "sent", "search"):
+        tab = "search" if query else "friends"
 
     return render_template(
         "friends.html",
-        username=session.get("username", "U"),
-        me=session["user_id"],
         query=query,
         results=results,
         friends=friends,
+        incoming=incoming,
+        sent=sent,
+        tab=tab,
         courses=[COURSES[slug] for slug in COURSE_ORDER],
         error=error,
     )
@@ -770,7 +1010,7 @@ def render_friends(query="", error=None):
 @login_required
 def friends():
     query = request.args.get("q", "").strip()[:30]
-    return render_friends(query)
+    return render_friends(query, tab=request.args.get("tab"))
 
 
 def friend_id_from_form():
@@ -795,12 +1035,31 @@ def friends_add():
     if outcome == "self":
         return render_friends(error="You can't add yourself - you're already on your own side.")
 
-    return redirect(url_for("friends"))
+    if outcome == "friends":
+        flash("You are now friends.")
+        return redirect(url_for("friends", tab="friends"))
+
+    flash("Friend request sent. You'll be friends once they add you back.")
+    return redirect(url_for("friends", tab="sent"))
+
+
+@app.route("/friends/decline", methods=["POST"])
+@login_required
+def friends_decline():
+    friend_id = friend_id_from_form()
+
+    conn = get_db()
+    progress_db.decline_request(conn, session["user_id"], friend_id)
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("friends", tab="requests"))
 
 
 @app.route("/friends/remove", methods=["POST"])
 @login_required
 def friends_remove():
+    """Ends a friendship or cancels a request you sent."""
     friend_id = friend_id_from_form()
 
     conn = get_db()
@@ -808,41 +1067,60 @@ def friends_remove():
     conn.commit()
     conn.close()
 
-    return redirect(url_for("friends"))
+    return redirect(url_for("friends", tab=request.form.get("tab", "friends")))
 
 
 @app.route("/leaderboard")
 @login_required
 def leaderboard():
+    """
+    Every player's best time on one level. A course must be chosen;
+    the level defaults to the first one; times sort fastest-first
+    unless order=desc.
+    """
+    course_slug = request.args.get("course", "")
+    course = get_course(course_slug) if course_slug else None
+    descending = request.args.get("order") == "desc"
+    submitted = "course" in request.args
+
+    error = None
+    level = None
+    times = []
+    mine = None
+
+    if submitted and course is None:
+        error = "Choose a course first."
 
     conn = get_db()
+    privacy = progress_db.get_privacy(conn, session["user_id"])
 
-    boards = []
-    for slug in COURSE_ORDER:
-        course = COURSES[slug]
-        records = progress_db.level_records(conn, slug)
-        mine = progress_db.course_progress(conn, session["user_id"], slug)["times"]
-        boards.append({
-            "course": course,
-            "levels": [
-                {
-                    "number": lvl["number"],
-                    "title": lvl["title"],
-                    "kind": lvl["kind"],
-                    "record": records.get(lvl["number"]),
-                    "mine": mine.get(lvl["number"]),
-                }
-                for lvl in course["levels"]
-            ],
-            "ranking": progress_db.progress_ranking(conn, slug),
-        })
+    if course is not None:
+        raw = request.args.get("level", "")
+        level = get_level(course_slug, int(raw)) if raw.isdigit() else course["levels"][0]
+        if level is None:
+            error = "That level does not exist in this course."
+        else:
+            times = progress_db.level_times(conn, course_slug, level["number"], descending)
+            mine = progress_db.course_progress(conn, session["user_id"], course_slug)["times"].get(level["number"])
 
     conn.close()
 
+    levels_by_course = {
+        slug: [{"number": lvl["number"], "title": lvl["title"], "kind": lvl["kind"]} for lvl in COURSES[slug]["levels"]]
+        for slug in COURSE_ORDER
+    }
+
     return render_template(
         "leaderboard.html",
-        boards=boards,
-        username=session.get("username", "U"),
+        courses=[COURSES[slug] for slug in COURSE_ORDER],
+        levels_by_course=levels_by_course,
+        course=course,
+        level=level,
+        descending=descending,
+        times=times,
+        mine=mine,
+        hidden_me=not privacy["leaderboard_times"],
+        error=error,
     )
 
 

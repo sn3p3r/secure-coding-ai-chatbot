@@ -1,0 +1,2 @@
+{#- Another player's picture (or their initial). Expects `person` with id, username, avatar. -#}
+{% if person.avatar %}<img class="avatar-img" src="{{ url_for('avatar', user_id=person.id) }}?v={{ person.avatar }}" alt="">{% else %}{{ person.username[0]|upper }}{% endif %}

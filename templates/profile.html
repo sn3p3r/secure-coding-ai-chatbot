@@ -30,7 +30,7 @@
 
         <div class="time-display">
             TIME:
-            <span id="time-spent">00:00:00</span>
+            <span id="time-spent" data-seconds="{{ time_spent or 0 }}">00:00:00</span>
         </div>
 
         <div class="top-right">
@@ -40,7 +40,7 @@
             <div class="profile-button">
 
                 <span class="profile-picture">
-                    {{ user["username"][0]|upper }}
+                    {% include "_avatar.html" %}
                 </span>
 
                 <span>{{ user["username"]|upper }}</span>
@@ -58,7 +58,7 @@
         <section class="profile-heading">
 
             <div class="large-profile-picture">
-                {{ user["username"][0]|upper }}
+                {% include "_avatar.html" %}
             </div>
 
             <div>
@@ -79,6 +79,16 @@
 
         </section>
 
+
+        <!-- TABS -->
+        <nav class="tabs" data-tabs aria-label="Profile sections">
+            <button type="button" class="tab {% if tab == 'overview' %}is-active{% endif %}" data-tab="overview">OVERVIEW</button>
+            <button type="button" class="tab {% if tab == 'settings' %}is-active{% endif %}" data-tab="settings">SETTINGS &amp; PRIVACY</button>
+        </nav>
+
+
+        <!-- ============ OVERVIEW ============ -->
+        <div data-panel="overview" {% if tab != 'overview' %}hidden{% endif %}>
 
         <!-- MAIN STATS -->
         <section class="stats-section">
@@ -305,6 +315,89 @@
 
         </section>
 
+        </div>
+        <!-- ============ /OVERVIEW ============ -->
+
+
+        <!-- ============ SETTINGS & PRIVACY ============ -->
+        <div data-panel="settings" {% if tab != 'settings' %}hidden{% endif %}>
+
+        <section class="settings-section">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <p class="flash {% if category == 'error' %}flash-error{% endif %}">{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+
+            <p class="section-label">PROFILE PICTURE</p>
+
+            <div class="picture-row">
+
+                <div class="large-profile-picture">
+                    {% include "_avatar.html" %}
+                </div>
+
+                <form method="post" action="{{ url_for('profile_picture') }}" enctype="multipart/form-data" class="picture-form">
+                    <input type="file" name="picture" accept="image/png,image/jpeg,image/gif,image/webp" required aria-label="Choose a picture">
+                    <div class="picture-actions">
+                        <button type="submit" class="outline-button">UPLOAD PICTURE</button>
+                    </div>
+                    <p class="form-hint">PNG, JPEG, GIF or WebP, up to 2 MB. Square pictures look best. Other students see it on your profile, in friend lists and on the leaderboard.</p>
+                </form>
+
+                {% if avatar_url %}
+                    <form method="post" action="{{ url_for('profile_picture_remove') }}">
+                        <button type="submit" class="text-button">REMOVE PICTURE</button>
+                    </form>
+                {% endif %}
+
+            </div>
+
+
+            <p class="section-label">PRIVACY</p>
+
+            <form method="post" action="{{ url_for('profile_privacy') }}" class="privacy-form">
+
+                {% macro who(name, label, help) %}
+                    <div class="privacy-row">
+                        <label for="privacy-{{ name }}">{{ label }}<small>{{ help }}</small></label>
+                        <select id="privacy-{{ name }}" name="{{ name }}">
+                            {% for option in privacy_levels %}
+                                <option value="{{ option }}" {% if privacy[name] == option %}selected{% endif %}>{{ option|upper }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endmacro %}
+
+                {{ who("profile_visibility", "Who can open your profile", "What people get when they click your name. NOBODY shows them a private-profile notice.") }}
+                {{ who("show_progress", "Who can see your progress", "Course percentages and levels completed.") }}
+                {{ who("show_achievements", "Who can see your achievements", "Badges, lit beams and how many secret achievements you have found.") }}
+                {{ who("show_time", "Who can see your time spent", "The total time you have had the Academy open.") }}
+
+                <div class="privacy-row">
+                    <label for="privacy-search">Show me in friend search<small>Off means nobody can find you by username; people you already added can still see you.</small></label>
+                    <input type="checkbox" id="privacy-search" name="search_visible" {% if privacy.search_visible %}checked{% endif %}>
+                </div>
+
+                <div class="privacy-row">
+                    <label for="privacy-board">Show my times on the leaderboard<small>Also hides your name from the level records shown before a level starts.</small></label>
+                    <input type="checkbox" id="privacy-board" name="leaderboard_times" {% if privacy.leaderboard_times %}checked{% endif %}>
+                </div>
+
+                <div class="picture-actions">
+                    <button type="submit" class="large-button">SAVE PRIVACY</button>
+                </div>
+
+                <p class="form-hint">Friends are people who added you back. You always see everything on your own profile.</p>
+
+            </form>
+
+        </section>
+
+        </div>
+        <!-- ============ /SETTINGS ============ -->
+
 
         <!-- ACCOUNT ACTIONS -->
         <section class="account-actions">
@@ -348,6 +441,8 @@
 
     </main>
 
+
+    {% include "_faq.html" %}
 
     {% include "_mentor.html" %}
 

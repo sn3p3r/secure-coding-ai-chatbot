@@ -32,6 +32,7 @@ values, or set them as environment variables:
 | `FLASK_DEBUG`       | `1` for development, `0` for deployment.                       |
 | `PORT`              | Change if 5000 is taken (macOS AirPlay uses it).               |
 | `ACADEMY_DB`        | Path of the SQLite file (default `academy.db`).                |
+| `ACADEMY_AVATARS_DIR` | Folder for uploaded profile pictures (default `data/avatars`). |
 
 The database (`academy.db`) is created automatically on first run and is
 git-ignored because it holds user accounts.
@@ -53,11 +54,19 @@ course page shows the section map on the left (current level in bold),
 the game window in the middle (fullscreen button bottom-right), and the
 lesson notes below.
 
-The **FRIENDS** tab in the top bar searches every registered account by
-username; a friend's card shows their levels, percent, lit beams and how
-many secret achievements they have found. The profile keeps the badges,
-the obelisk beams, the secret-achievement count, the website idea from
-the Internet course and the language chosen for Secure Coding.
+The **FRIENDS** tab in the top bar searches registered accounts by
+username and sends a friend request; you are friends once the other
+person adds you back (REQUESTS and SENT tabs). A friend's card shows
+their levels, percent, lit beams and secret-achievement count, and links
+to their profile page. The profile keeps the badges, the obelisk beams,
+the secret-achievement count, the website idea from the Internet course
+and the language chosen for Secure Coding. Its SETTINGS & PRIVACY tab
+takes a profile picture (PNG/JPEG/GIF/WebP, 2 MB) and decides who can
+open your profile, see your progress, achievements and time spent,
+find you in search, and see your times on the leaderboard. The
+leaderboard lists every player's best time on one chosen level, fastest
+or slowest first. Every signed-in page ends with a short FAQ, and the
+SecureMentor tab peeks up from the bottom-right corner on each page load.
 
 ## Project layout
 

@@ -21,14 +21,14 @@
 
         <div class="time-display">
             TIME:
-            <span id="time-spent">00:00:00</span>
+            <span id="time-spent" data-seconds="{{ time_spent or 0 }}">00:00:00</span>
         </div>
 
         <div class="top-right">
             <a href="/friends" class="top-link">FRIENDS</a>
             <a href="/profile" class="profile-button">
                 <span class="profile-picture">
-                    {{ username[0]|upper }}
+                    {% include "_avatar.html" %}
                 </span>
                 <span>{{ username|upper }}</span>
             </a>
@@ -42,80 +42,166 @@
         <section class="quiz-intro">
             <p class="academy-name">ACADEMY NETWORK</p>
             <h1>FRIENDS</h1>
-            <p>Search for any registered student by username and add them. Their cards show how far they are, which beams they have lit, and how many secret achievements they have found.</p>
+            <p>Search for any registered student by username and send a request. You are friends once they add you back. Friend cards show how far they are, which beams they have lit, and how many secret achievements they have found.</p>
         </section>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="flash {% if category == 'error' %}flash-error{% endif %}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
         {% if error %}
-            <p class="friend-error">{{ error }}</p>
+            <p class="flash flash-error">{{ error }}</p>
         {% endif %}
 
-        <form method="get" action="{{ url_for('friends') }}" class="friend-search">
-            <input
-                type="text"
-                name="q"
-                value="{{ query }}"
-                placeholder="Search by username"
-                maxlength="30"
-                autocomplete="off"
-                aria-label="Search by username"
-            >
-            <button type="submit" class="outline-button">SEARCH</button>
-        </form>
 
-        {% if results is not none %}
-            <p class="section-label">SEARCH RESULTS · "{{ query }}"</p>
+        {% macro card(person, extra_class="") %}
+            <article class="friend-card {{ extra_class }}" data-username="{{ person.username }}" data-user-id="{{ person.id }}">
+                <a class="friend-avatar" href="{{ url_for('public_profile', username=person.username) }}">{% include "_person_avatar.html" %}</a>
+                <div class="friend-body">
+                    <a class="friend-name" href="{{ url_for('public_profile', username=person.username) }}">{{ person.username }}</a>
+                    <span class="friend-meta">{{ person.levels_done }} / {{ person.total }} levels · {{ person.percent }}% · {{ person.beams|length }} / 4 beams · {{ person.secrets }} secret{% if person.secrets != 1 %}s{% endif %}</span>
+                    <div class="beam-row" aria-label="beams">
+                        {% for course in courses %}
+                            <span class="beam beam-{{ course.slug }} {% if course.slug in person.beams %}beam-lit{% endif %}" title="{{ course.title }}"></span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {{ caller() }}
+            </article>
+        {% endmacro %}
 
-            {% if results %}
+
+        <!-- TABS -->
+        <nav class="tabs" data-tabs aria-label="Friends sections">
+            <button type="button" class="tab {% if tab == 'friends' %}is-active{% endif %}" data-tab="friends">FRIENDS <span class="tab-badge">{{ friends|length }}</span></button>
+            <button type="button" class="tab {% if tab == 'requests' %}is-active{% endif %}" data-tab="requests">REQUESTS <span class="tab-badge {% if incoming %}tab-badge-hot{% endif %}">{{ incoming|length }}</span></button>
+            <button type="button" class="tab {% if tab == 'sent' %}is-active{% endif %}" data-tab="sent">SENT <span class="tab-badge">{{ sent|length }}</span></button>
+            <button type="button" class="tab {% if tab == 'search' %}is-active{% endif %}" data-tab="search">SEARCH</button>
+        </nav>
+
+
+        <!-- FRIENDS -->
+        <div data-panel="friends" {% if tab != 'friends' %}hidden{% endif %}>
+            <p class="section-label">YOUR FRIENDS · {{ friends|length }}</p>
+
+            {% if friends %}
                 <div class="friend-list">
-                    {% for person in results %}
-                        <article class="friend-card friend-result" data-username="{{ person.username }}" data-user-id="{{ person.id }}">
-                            <span class="friend-avatar">{{ person.username[0]|upper }}</span>
-                            <div class="friend-body">
-                                <span class="friend-name">{{ person.username }}</span>
-                                <span class="friend-meta">{{ person.levels_done }} / {{ person.total }} levels · {{ person.percent }}% · {{ person.beams|length }} / 4 beams</span>
-                            </div>
-                            {% if person.added %}
-                                <span class="friend-added">ADDED</span>
-                            {% else %}
-                                <form method="post" action="{{ url_for('friends_add') }}">
-                                    <input type="hidden" name="friend_id" value="{{ person.id }}">
-                                    <button type="submit" class="friend-action">ADD FRIEND</button>
-                                </form>
-                            {% endif %}
-                        </article>
+                    {% for person in friends %}
+                        {% call card(person) %}
+                            <form method="post" action="{{ url_for('friends_remove') }}">
+                                <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                <input type="hidden" name="tab" value="friends">
+                                <button type="submit" class="friend-action">REMOVE</button>
+                            </form>
+                        {% endcall %}
                     {% endfor %}
                 </div>
             {% else %}
-                <p class="friend-empty">No accounts match "{{ query }}".</p>
+                <p class="friend-empty">Nobody yet. Use SEARCH to find a username and send a request.</p>
             {% endif %}
-        {% endif %}
+        </div>
 
-        <p class="section-label">YOUR FRIENDS · {{ friends|length }}</p>
 
-        {% if friends %}
-            <div class="friend-list">
-                {% for person in friends %}
-                    <article class="friend-card" data-username="{{ person.username }}" data-user-id="{{ person.id }}">
-                        <span class="friend-avatar">{{ person.username[0]|upper }}</span>
-                        <div class="friend-body">
-                            <span class="friend-name">{{ person.username }}</span>
-                            <span class="friend-meta">{{ person.levels_done }} / {{ person.total }} levels · {{ person.percent }}% · {{ person.beams|length }} / 4 beams · {{ person.secrets }} secret{% if person.secrets != 1 %}s{% endif %}</span>
-                            <div class="beam-row" aria-label="beams">
-                                {% for course in courses %}
-                                    <span class="beam beam-{{ course.slug }} {% if course.slug in person.beams %}beam-lit{% endif %}" title="{{ course.title }}"></span>
-                                {% endfor %}
+        <!-- REQUESTS -->
+        <div data-panel="requests" {% if tab != 'requests' %}hidden{% endif %}>
+            <p class="section-label">PEOPLE WHO ADDED YOU · {{ incoming|length }}</p>
+
+            {% if incoming %}
+                <div class="friend-list">
+                    {% for person in incoming %}
+                        {% call card(person, "friend-request") %}
+                            <div class="friend-buttons">
+                                <form method="post" action="{{ url_for('friends_add') }}">
+                                    <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                    <button type="submit" class="friend-action friend-accept">ACCEPT</button>
+                                </form>
+                                <form method="post" action="{{ url_for('friends_decline') }}">
+                                    <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                    <button type="submit" class="friend-action">DECLINE</button>
+                                </form>
                             </div>
-                        </div>
-                        <form method="post" action="{{ url_for('friends_remove') }}">
-                            <input type="hidden" name="friend_id" value="{{ person.id }}">
-                            <button type="submit" class="friend-action">REMOVE</button>
-                        </form>
-                    </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="friend-empty">Nobody yet. Search for a username above.</p>
-        {% endif %}
+                        {% endcall %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="friend-empty">No requests waiting.</p>
+            {% endif %}
+        </div>
+
+
+        <!-- SENT -->
+        <div data-panel="sent" {% if tab != 'sent' %}hidden{% endif %}>
+            <p class="section-label">REQUESTS YOU SENT · {{ sent|length }}</p>
+
+            {% if sent %}
+                <div class="friend-list">
+                    {% for person in sent %}
+                        {% call card(person) %}
+                            <form method="post" action="{{ url_for('friends_remove') }}">
+                                <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                <input type="hidden" name="tab" value="sent">
+                                <button type="submit" class="friend-action">CANCEL</button>
+                            </form>
+                        {% endcall %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="friend-empty">You have no pending requests.</p>
+            {% endif %}
+        </div>
+
+
+        <!-- SEARCH -->
+        <div data-panel="search" {% if tab != 'search' %}hidden{% endif %}>
+
+            <form method="get" action="{{ url_for('friends') }}" class="friend-search">
+                <input type="hidden" name="tab" value="search">
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ query }}"
+                    placeholder="Search by username"
+                    maxlength="30"
+                    autocomplete="off"
+                    aria-label="Search by username"
+                >
+                <button type="submit" class="outline-button">SEARCH</button>
+            </form>
+
+            {% if results is not none %}
+                <p class="section-label">SEARCH RESULTS · "{{ query }}"</p>
+
+                {% if results %}
+                    <div class="friend-list">
+                        {% for person in results %}
+                            {% call card(person, "friend-result") %}
+                                {% if person.state == 'friends' %}
+                                    <span class="friend-added">FRIENDS</span>
+                                {% elif person.state == 'sent' %}
+                                    <span class="friend-added">REQUEST SENT</span>
+                                {% elif person.state == 'incoming' %}
+                                    <form method="post" action="{{ url_for('friends_add') }}">
+                                        <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                        <button type="submit" class="friend-action friend-accept">ACCEPT</button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{{ url_for('friends_add') }}">
+                                        <input type="hidden" name="friend_id" value="{{ person.id }}">
+                                        <button type="submit" class="friend-action">ADD FRIEND</button>
+                                    </form>
+                                {% endif %}
+                            {% endcall %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="friend-empty">No accounts match "{{ query }}". People can switch themselves off from search in their privacy settings.</p>
+                {% endif %}
+            {% endif %}
+
+        </div>
+
 
         <section class="account-actions">
             <a href="{{ url_for('profile') }}" class="outline-button">MY PROFILE</a>
@@ -124,6 +210,8 @@
 
     </main>
 
+
+    {% include "_faq.html" %}
 
     {% include "_mentor.html" %}
 

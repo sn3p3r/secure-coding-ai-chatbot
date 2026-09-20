@@ -21,13 +21,11 @@
 
         <div class="time-display">
             TIME:
-            <span id="time-spent">00:00:00</span>
+            <span id="time-spent" data-seconds="{{ time_spent or 0 }}">00:00:00</span>
         </div>
 
         <a href="/profile" class="profile-button">
-            <span class="profile-picture">
-                {{ username[0]|upper }}
-            </span>
+            <span class="profile-picture">{% include "_avatar.html" %}</span>
             <span>{{ username|upper }}</span>
         </a>
 
@@ -293,6 +291,9 @@
         </div>
 
     </main>
+
+
+    {% include "_faq.html" %}
 
 
     {% include "_mentor.html" %}

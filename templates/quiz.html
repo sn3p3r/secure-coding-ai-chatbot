@@ -32,9 +32,7 @@
         </div>
 
         <a href="/profile" class="profile-button">
-            <span class="profile-picture">
-                {{ session.get("username", "U")[0]|upper }}
-            </span>
+            <span class="profile-picture">{% include "_avatar.html" %}</span>
 
             <span>PROFILE</span>
         </a>
@@ -492,6 +490,9 @@
         </section>
 
     </main>
+
+
+    {% include "_faq.html" %}
 
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>

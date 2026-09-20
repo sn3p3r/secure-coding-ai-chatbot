@@ -4335,3 +4335,449 @@ kbd {
         gap: 14px;
     }
 }
+
+
+/* =========================================================
+   PROFILE PICTURES, TABS, SETTINGS, FAQ, LEADERBOARD FILTER
+========================================================= */
+
+.profile-picture,
+.large-profile-picture,
+.friend-avatar {
+    overflow: hidden;
+}
+
+.avatar-img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+a.friend-avatar {
+    text-decoration: none;
+}
+
+.tabs {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin: 28px 0 30px;
+
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.tab {
+    margin-bottom: -1px;
+
+    padding: 12px 14px;
+
+    background: none;
+
+    border: none;
+
+    border-bottom: 2px solid transparent;
+
+    color: #8a8a8a;
+
+    font-family: inherit;
+
+    font-size: 11px;
+
+    letter-spacing: 1.5px;
+
+    cursor: pointer;
+}
+
+.tab:hover {
+    color: #ffffff;
+}
+
+.tab.is-active {
+    color: #ffffff;
+
+    border-bottom-color: #ffffff;
+}
+
+.tab-badge {
+    display: inline-block;
+
+    min-width: 18px;
+
+    margin-left: 6px;
+
+    padding: 1px 6px;
+
+    border: 1px solid #3a3a3a;
+
+    border-radius: 9px;
+
+    color: #dddddd;
+
+    font-size: 10px;
+
+    text-align: center;
+}
+
+.tab-badge-hot {
+    border-color: #ffffff;
+
+    background: #ffffff;
+
+    color: #000000;
+}
+
+.settings-section {
+    margin-bottom: 44px;
+}
+
+.flash {
+    margin: 0 0 18px;
+
+    padding: 10px 14px;
+
+    background: #151515;
+
+    border: 1px solid #4a4a4a;
+
+    color: #ffffff;
+
+    font-size: 13px;
+}
+
+.flash-error {
+    border-color: #7a3a3a;
+
+    color: #ff9a9a;
+}
+
+.picture-row {
+    display: flex;
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 24px;
+
+    margin: 14px 0 40px;
+}
+
+.picture-form {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    max-width: 420px;
+}
+
+.picture-form input[type="file"] {
+    color: #cccccc;
+
+    font-family: inherit;
+
+    font-size: 12px;
+}
+
+.picture-actions {
+    display: flex;
+
+    gap: 10px;
+}
+
+.form-hint {
+    color: #8a8a8a;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+.privacy-form {
+    display: grid;
+
+    gap: 12px;
+
+    max-width: 680px;
+
+    margin: 14px 0 10px;
+}
+
+.privacy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 12px 14px;
+
+    background: #121212;
+
+    border: 1px solid #2a2a2a;
+}
+
+.privacy-row label {
+    color: #dddddd;
+
+    font-size: 13px;
+
+    line-height: 1.4;
+}
+
+.privacy-row small {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #8a8a8a;
+
+    font-size: 11px;
+}
+
+.privacy-row select,
+.board-form select {
+    padding: 8px 10px;
+
+    background: #0d0d0d;
+
+    border: 1px solid #303030;
+
+    color: #ffffff;
+
+    font-family: inherit;
+
+    font-size: 12px;
+
+    letter-spacing: 1px;
+}
+
+.privacy-row select:focus,
+.board-form select:focus {
+    outline: none;
+
+    border-color: #8a8a8a;
+}
+
+.privacy-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+
+    flex-shrink: 0;
+
+    accent-color: #ffffff;
+}
+
+.friend-buttons {
+    display: flex;
+
+    gap: 8px;
+}
+
+.friend-accept {
+    border-color: #ffffff;
+
+    color: #ffffff;
+}
+
+.user-page .profile-heading h1 {
+    margin-bottom: 12px;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.user-actions form {
+    margin: 0;
+}
+
+.private-note {
+    margin: 10px 0 40px;
+
+    padding: 22px;
+
+    border: 1px dashed #333333;
+
+    color: #8a8a8a;
+
+    font-size: 13px;
+}
+
+.stat-hidden {
+    color: #555555;
+
+    font-size: 13px;
+
+    letter-spacing: 1.5px;
+}
+
+.board-form {
+    display: grid;
+
+    grid-template-columns: 1.2fr 1.6fr 1fr auto;
+
+    align-items: end;
+
+    gap: 12px;
+
+    margin: 26px 0 30px;
+}
+
+.board-form label {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 6px;
+
+    color: #777777;
+
+    font-size: 10px;
+
+    letter-spacing: 1.5px;
+}
+
+.board-form select {
+    width: 100%;
+}
+
+.board-form select:disabled {
+    color: #666666;
+}
+
+.board-player {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 10px;
+
+    color: inherit;
+
+    text-decoration: none;
+}
+
+.board-player .friend-avatar {
+    width: 28px;
+    height: 28px;
+
+    font-size: 12px;
+}
+
+.board-note {
+    margin: 4px 0 18px;
+
+    color: #8a8a8a;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+/* The mentor tab rises for a moment on every page load */
+.mentor-dock.peek .mentor-floating-button {
+    color: #ffffff;
+
+    border-color: #777777;
+
+    opacity: 1;
+
+    transform: translateY(0);
+}
+
+/* FAQ footer */
+.faq {
+    margin-top: 70px;
+
+    background: #0a0a0a;
+
+    border-top: 1px solid #222222;
+}
+
+.faq-inner {
+    max-width: 1000px;
+
+    margin: 0 auto;
+
+    padding: 40px 32px 70px;
+}
+
+.faq details {
+    padding: 12px 0;
+
+    border-bottom: 1px solid #1e1e1e;
+}
+
+.faq summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    color: #dddddd;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    list-style: none;
+}
+
+.faq summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq summary::after {
+    content: "+";
+
+    color: #777777;
+}
+
+.faq details[open] summary::after {
+    content: "–";
+}
+
+.faq details p {
+    max-width: 720px;
+
+    margin: 10px 0 4px;
+
+    color: #a5a5a5;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+
+    .board-form {
+        grid-template-columns: 1fr;
+    }
+
+    .picture-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .privacy-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .faq-inner {
+        padding: 30px 18px 50px;
+    }
+}

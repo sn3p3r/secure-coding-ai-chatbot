@@ -21,14 +21,14 @@
 
         <div class="time-display">
             TIME:
-            <span id="time-spent">00:00:00</span>
+            <span id="time-spent" data-seconds="{{ time_spent or 0 }}">00:00:00</span>
         </div>
 
         <div class="top-right">
             <a href="/friends" class="top-link">FRIENDS</a>
             <a href="/profile" class="profile-button">
                 <span class="profile-picture">
-                    {{ username[0]|upper }}
+                    {% include "_avatar.html" %}
                 </span>
                 <span>{{ username|upper }}</span>
             </a>
@@ -42,69 +42,113 @@
         <section class="quiz-intro">
             <p class="academy-name">ACADEMY RANKINGS</p>
             <h1>LEADERBOARD</h1>
-            <p>Every level keeps its own record: the clock runs from the moment you gain control until the terminal accepts your answer. Beat a record and your name goes on the level.</p>
+            <p>Pick a course and a level to see every player's best time on it. The clock runs from the moment you gain control until the terminal accepts your answer.</p>
         </section>
 
-        {% for board in boards %}
+        <!-- Level titles per course, used to fill the level box when the course changes -->
+        <script id="levels-data" type="application/json">{{ levels_by_course|tojson }}</script>
+
+        <form method="get" action="{{ url_for('leaderboard') }}" class="board-form">
+
+            <label>
+                COURSE (REQUIRED)
+                <select id="board-course" name="course" required>
+                    <option value="" {% if not course %}selected{% endif %}>Choose a course...</option>
+                    {% for c in courses %}
+                        <option value="{{ c.slug }}" {% if course and course.slug == c.slug %}selected{% endif %}>{{ c.title }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                LEVEL
+                <select id="board-level" name="level" {% if not course %}disabled{% endif %}>
+                    {% if course %}
+                        {% for lvl in course.levels %}
+                            <option value="{{ lvl.number }}" {% if level and level.number == lvl.number %}selected{% endif %}>{{ '%02d' % lvl.number }} · {{ lvl.title }}{% if lvl.kind == 'quiz' %} (quiz){% endif %}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="">Choose a course first</option>
+                    {% endif %}
+                </select>
+            </label>
+
+            <label>
+                SORT
+                <select name="order">
+                    <option value="asc" {% if not descending %}selected{% endif %}>FASTEST FIRST</option>
+                    <option value="desc" {% if descending %}selected{% endif %}>SLOWEST FIRST</option>
+                </select>
+            </label>
+
+            <button type="submit" class="outline-button">SHOW TIMES</button>
+
+        </form>
+
+        {% if error %}
+            <p class="flash flash-error">{{ error }}</p>
+        {% endif %}
+
+        {% if course and level %}
             <section class="board-card board-wide">
 
                 <div class="course-top">
-                    <span class="course-number">{{ board.course.number }}</span>
-                    <span class="course-status">{{ board.course.zone|upper }}</span>
+                    <span class="course-number">{{ course.number }}</span>
+                    <span class="course-status">{{ course.zone|upper }}</span>
                 </div>
 
-                <h2>{{ board.course.title|upper }}</h2>
+                <h2>{{ course.title|upper }} · LEVEL {{ '%02d' % level.number }} · {{ level.title|upper }}</h2>
 
-                <div class="board-columns">
-
-                    <div>
-                        <p class="section-label">LEVEL RECORDS</p>
-                        <table class="board-table records-table">
-                            <thead>
-                                <tr>
-                                    <th>LEVEL</th>
-                                    <th>RECORD</th>
-                                    <th>HELD BY</th>
-                                    <th>YOUR BEST</th>
+                {% if times %}
+                    <table class="board-table records-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>PLAYER</th>
+                                <th>TIME</th>
+                                <th>SET ON</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in times %}
+                                <tr class="{% if row.username == username %}board-me{% endif %}">
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        <a class="board-player" href="{{ url_for('public_profile', username=row.username) }}">
+                                            {% set person = row %}
+                                            <span class="friend-avatar">{% if row.avatar %}<img class="avatar-img" src="{{ url_for('avatar', user_id=row.user_id) }}?v={{ row.avatar }}" alt="">{% else %}{{ row.username[0]|upper }}{% endif %}</span>
+                                            {{ row.username }}
+                                        </a>
+                                    </td>
+                                    <td>{{ '%02d:%02d' % (row.seconds // 60, row.seconds % 60) }}</td>
+                                    <td>{{ row.completed_at or '—' }}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {% for lvl in board.levels %}
-                                    <tr class="{% if lvl.record and lvl.record.username == username %}board-me{% endif %}">
-                                        <td>{{ '%02d' % lvl.number }} {{ lvl.title }}{% if lvl.kind == 'quiz' %} <span class="level-kind">QUIZ</span>{% endif %}</td>
-                                        <td>{% if lvl.record %}{{ '%02d:%02d' % (lvl.record.seconds // 60, lvl.record.seconds % 60) }}{% else %}—{% endif %}</td>
-                                        <td>{% if lvl.record %}{{ lvl.record.username }}{% else %}unclaimed{% endif %}</td>
-                                        <td>{% if lvl.mine is not none %}{{ '%02d:%02d' % (lvl.mine // 60, lvl.mine % 60) }}{% else %}—{% endif %}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="board-empty">No visible times on this level yet.</p>
+                {% endif %}
 
-                    <div class="board-ranking">
-                        <p class="section-label">FURTHEST PROGRESS</p>
-                        {% if board.ranking %}
-                            <ol class="rank-list">
-                                {% for row in board.ranking %}
-                                    <li class="{% if row.username == username %}board-me{% endif %}">
-                                        <span>{{ row.username }}</span>
-                                        <span>{{ row.levels_done }} / {{ board.levels|length }}</span>
-                                    </li>
-                                {% endfor %}
-                            </ol>
-                        {% else %}
-                            <p class="board-empty">No recruit has finished a level here yet.</p>
-                        {% endif %}
+                {% if hidden_me %}
+                    <p class="board-note">Your own times are hidden from the leaderboard by your privacy settings{% if mine is not none %} (your best here: {{ '%02d:%02d' % (mine // 60, mine % 60) }}){% endif %}. Change it under PROFILE › SETTINGS &amp; PRIVACY.</p>
+                {% elif mine is not none %}
+                    <p class="board-note">Your best on this level: {{ '%02d:%02d' % (mine // 60, mine % 60) }}.</p>
+                {% endif %}
 
-                        <a class="course-button" href="{{ url_for('course_home', course_slug=board.course.slug) }}">ENTER {{ board.course.zone|upper }}</a>
-                    </div>
-
-                </div>
+                <a class="course-button" href="{{ url_for('course_level', course_slug=course.slug, number=level.number) }}">PLAY THIS LEVEL</a>
 
             </section>
-        {% endfor %}
+        {% elif not error %}
+            <p class="board-empty">Choose a course above to see its times.</p>
+        {% endif %}
 
     </main>
+
+
+    {% include "_faq.html" %}
+
+    {% include "_mentor.html" %}
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 

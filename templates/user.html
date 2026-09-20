@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ person.username }} | Cyber Academy</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+
+        <a href="/" class="back-link">
+            ← CYBER ACADEMY
+        </a>
+
+        <div class="time-display">
+            TIME:
+            <span id="time-spent" data-seconds="{{ time_spent or 0 }}">00:00:00</span>
+        </div>
+
+        <div class="top-right">
+            <a href="/friends" class="top-link">FRIENDS</a>
+            <a href="/profile" class="profile-button">
+                <span class="profile-picture">
+                    {% include "_avatar.html" %}
+                </span>
+                <span>{{ username|upper }}</span>
+            </a>
+        </div>
+
+    </header>
+
+
+    <main class="profile-page user-page">
+
+        <!-- HEADER -->
+        <section class="profile-heading">
+
+            <div class="large-profile-picture">
+                {% if person_avatar %}<img class="avatar-img" src="{{ person_avatar }}" alt="">{% else %}{{ person.username[0]|upper }}{% endif %}
+            </div>
+
+            <div>
+                <p class="academy-name">
+                    {% if relation == 'friend' %}YOUR FRIEND{% else %}STUDENT PROFILE{% endif %}
+                </p>
+
+                <h1>{{ person.username }}</h1>
+
+                <div class="user-actions">
+                    {% if state == 'friends' %}
+                        <form method="post" action="{{ url_for('friends_remove') }}">
+                            <input type="hidden" name="friend_id" value="{{ person.id }}">
+                            <button type="submit" class="friend-action">REMOVE FRIEND</button>
+                        </form>
+                    {% elif state == 'sent' %}
+                        <span class="friend-added">REQUEST SENT</span>
+                        <form method="post" action="{{ url_for('friends_remove') }}">
+                            <input type="hidden" name="friend_id" value="{{ person.id }}">
+                            <input type="hidden" name="tab" value="sent">
+                            <button type="submit" class="friend-action">CANCEL</button>
+                        </form>
+                    {% elif state == 'incoming' %}
+                        <form method="post" action="{{ url_for('friends_add') }}">
+                            <input type="hidden" name="friend_id" value="{{ person.id }}">
+                            <button type="submit" class="friend-action friend-accept">ACCEPT REQUEST</button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{{ url_for('friends_add') }}">
+                            <input type="hidden" name="friend_id" value="{{ person.id }}">
+                            <button type="submit" class="friend-action">ADD FRIEND</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+        </section>
+
+
+        {% if not view.visible %}
+
+            <p class="private-note">{{ person.username }} keeps this profile private.</p>
+
+        {% else %}
+
+            <!-- STATS -->
+            <section class="stats-section">
+
+                <p class="section-label">OVERVIEW</p>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <span class="stat-label">OVERALL COMPLETION</span>
+                        <strong class="stat-number">{% if view.percent is defined %}{{ view.percent }}%{% else %}<span class="stat-hidden">HIDDEN</span>{% endif %}</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-label">LEVELS COMPLETED</span>
+                        <strong class="stat-number">{% if view.levels_done is defined %}{{ view.levels_done }}{% else %}<span class="stat-hidden">HIDDEN</span>{% endif %}</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-label">TIME SPENT</span>
+                        <strong class="stat-number">{% if view.time is defined %}{{ '%02d:%02d:%02d' % (view.time // 3600, (view.time % 3600) // 60, view.time % 60) }}{% else %}<span class="stat-hidden">HIDDEN</span>{% endif %}</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-label">SECRET ACHIEVEMENTS</span>
+                        <strong class="stat-number">{% if view.secrets_earned is defined %}{{ view.secrets_earned }} / {{ view.secrets_total }}{% else %}<span class="stat-hidden">HIDDEN</span>{% endif %}</strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            {% if view.beams is defined %}
+                <section class="secrets-section">
+                    <div class="courses-header">
+                        <div>
+                            <p class="section-label">THE OBELISK</p>
+                            <h2>{{ view.beams|length }} / 4 beams lit</h2>
+                        </div>
+                        <div class="beam-row" aria-label="beams">
+                            {% for course in courses %}
+                                <span class="beam beam-{{ course.slug }} {% if course.slug in view.beams %}beam-lit{% endif %}" title="{{ course.title }}"></span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="badges-section">
+                    <p class="section-label">BADGES</p>
+                    {% for group in view.badges %}
+                        <div class="badge-course">
+                            <div class="badge-course-top">
+                                <h3>{{ group.course.title }}</h3>
+                                <span class="course-percentage">{{ group.earned }} / {{ group.badges|length }} earned</span>
+                            </div>
+                            <div class="badge-grid">
+                                {% for b in group.badges %}
+                                    <div class="badge {% if b.earned %}badge-earned{% else %}badge-locked{% endif %}" title="{{ b.name }} · {{ b.title }}">
+                                        <canvas class="badge-icon" width="24" height="24"
+                                            data-course="{{ group.course.slug }}" data-index="{{ loop.index0 }}"
+                                            data-earned="{{ 1 if b.earned else 0 }}" data-master="{{ 1 if b.master else 0 }}"
+                                            data-kind="{{ b.kind }}"></canvas>
+                                        <span class="badge-name">{{ b.name }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+
+            {% if view.progress is defined %}
+                <section class="profile-courses">
+                    <div class="courses-header">
+                        <div>
+                            <p class="section-label">LEARNING PATH</p>
+                            <h2>Course Progress</h2>
+                        </div>
+                    </div>
+                    {% for course in courses %}
+                        {% set p = view.progress[course.slug] %}
+                        <div class="profile-course">
+                            <div class="profile-course-top">
+                                <div>
+                                    <span class="course-number">{{ course.number }}</span>
+                                    <h3>{{ course.title }}</h3>
+                                </div>
+                                <span class="course-percentage">{{ p.levels_done }} / {{ p.total }} levels · {{ p.percent }}%</span>
+                            </div>
+                            <div class="profile-progress-track">
+                                <div class="profile-progress-fill" style="width: {{ p.percent }}%;"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+        {% endif %}
+
+
+        <section class="account-actions">
+            <a href="{{ url_for('friends') }}" class="outline-button">BACK TO FRIENDS</a>
+            <a href="{{ url_for('leaderboard') }}" class="outline-button">LEADERBOARD</a>
+        </section>
+
+    </main>
+
+
+    {% include "_faq.html" %}
+
+    {% include "_mentor.html" %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/badges.js') }}"></script>
+
+</body>
+
+</html>

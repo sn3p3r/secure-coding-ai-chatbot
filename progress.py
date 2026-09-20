@@ -71,6 +71,18 @@ def migrate(conn):
     if "kills" not in existing:
         conn.execute("ALTER TABLE users ADD COLUMN kills TEXT")
 
+    if "avatar" not in existing:
+        conn.execute("ALTER TABLE users ADD COLUMN avatar TEXT")
+
+    if "privacy" not in existing:
+        conn.execute("ALTER TABLE users ADD COLUMN privacy TEXT")
+
+    if "time_spent" not in existing:
+        conn.execute("ALTER TABLE users ADD COLUMN time_spent INTEGER NOT NULL DEFAULT 0")
+
+    if "last_ping" not in existing:
+        conn.execute("ALTER TABLE users ADD COLUMN last_ping REAL")
+
     conn.execute("""
         CREATE TABLE IF NOT EXISTS achievements (
             user_id INTEGER NOT NULL,
@@ -476,6 +488,7 @@ def level_records(conn, course_slug):
         """
         SELECT level_progress.level_number AS level_number,
                level_progress.best_time_seconds AS seconds,
+               users.id AS user_id,
                users.username AS username
         FROM level_progress
         JOIN users ON users.id = level_progress.user_id
@@ -489,8 +502,11 @@ def level_records(conn, course_slug):
         (course_slug,),
     ).fetchall()
 
+    hidden = hidden_from_boards(conn)
     records = {}
     for row in rows:
+        if row["user_id"] in hidden:
+            continue
         if row["level_number"] not in records:
             records[row["level_number"]] = {"seconds": row["seconds"], "username": row["username"]}
     return records
@@ -515,10 +531,135 @@ def progress_ranking(conn, course_slug, limit=5):
 
 
 # ---------------------------------------------------------
-# FRIENDS
+# PRIVACY, PROFILE PICTURES, TIME SPENT
 # ---------------------------------------------------------
 
-def user_summary(conn, user_id, username):
+PRIVACY_DEFAULTS = {
+    "search_visible": True,             # appear in the friends search
+    "profile_visibility": "everyone",   # who can open /u/<name>
+    "show_progress": "everyone",        # course progress and levels done
+    "show_achievements": "everyone",    # badges, beams, secret achievement count
+    "show_time": "friends",             # time spent
+    "leaderboard_times": True,          # times on the leaderboard and level records
+}
+PRIVACY_LEVELS = ("everyone", "friends", "nobody")
+
+
+def clean_privacy(values, from_form=False):
+    """
+    Returns a full settings dict. Unknown values fall back to the
+    defaults. With from_form=True a missing checkbox means "off".
+    """
+    cleaned = {}
+    for key, default in PRIVACY_DEFAULTS.items():
+        if isinstance(default, bool):
+            if from_form:
+                cleaned[key] = key in values
+            else:
+                cleaned[key] = bool(values.get(key, default))
+        else:
+            value = values.get(key, default)
+            cleaned[key] = value if value in PRIVACY_LEVELS else default
+    return cleaned
+
+
+def get_privacy(conn, user_id):
+    raw = _user_field(conn, user_id, "privacy")
+    stored = {}
+    if raw:
+        try:
+            stored = json.loads(raw)
+        except ValueError:
+            stored = {}
+    return clean_privacy(stored if isinstance(stored, dict) else {})
+
+
+def set_privacy(conn, user_id, values, from_form=False):
+    cleaned = clean_privacy(values, from_form=from_form)
+    conn.execute("UPDATE users SET privacy = ? WHERE id = ?", (json.dumps(cleaned), user_id))
+    return cleaned
+
+
+def allowed(setting, relation):
+    """Can a viewer with this relation ('self', 'friend', 'other') see it?"""
+    if relation == "self" or setting == "everyone":
+        return True
+    if setting == "friends":
+        return relation == "friend"
+    return False
+
+
+def relation_between(conn, viewer_id, owner_id):
+    if viewer_id == owner_id:
+        return "self"
+    return "friend" if are_friends(conn, viewer_id, owner_id) else "other"
+
+
+def hidden_from_boards(conn):
+    """Ids of everyone who switched leaderboard times off."""
+    hidden = set()
+    for row in conn.execute("SELECT id, privacy FROM users WHERE privacy IS NOT NULL").fetchall():
+        try:
+            stored = json.loads(row["privacy"])
+        except ValueError:
+            continue
+        if isinstance(stored, dict) and stored.get("leaderboard_times") is False:
+            hidden.add(row["id"])
+    return hidden
+
+
+def get_user_by_name(conn, username):
+    return conn.execute(
+        "SELECT id, username, avatar, time_spent FROM users WHERE username = ?", (username,)
+    ).fetchone()
+
+
+def get_avatar(conn, user_id):
+    """The stored picture tag ("png-1726780000": extension + upload time) or None."""
+    return _user_field(conn, user_id, "avatar") or None
+
+
+def set_avatar(conn, user_id, tag):
+    conn.execute("UPDATE users SET avatar = ? WHERE id = ?", (tag, user_id))
+
+
+def get_time_spent(conn, user_id):
+    return int(_user_field(conn, user_id, "time_spent") or 0)
+
+
+PING_MAX_GAP = 120        # seconds; a longer gap is idle time, not play time
+TIME_IMPORT_CAP = 100 * 3600
+
+
+def add_time(conn, user_id, now, claimed=None):
+    """
+    Called by the browser every 30 s. Adds the real gap since the last
+    ping (only when it is short). The very first ping may import the
+    browser's old local counter once, capped.
+    """
+    row = conn.execute("SELECT time_spent, last_ping FROM users WHERE id = ?", (user_id,)).fetchone()
+    if row is None:
+        return 0
+
+    total = int(row["time_spent"] or 0)
+    last = row["last_ping"]
+
+    if last is not None:
+        gap = now - float(last)
+        if 0 < gap <= PING_MAX_GAP:
+            total += int(gap)
+    elif claimed and total == 0:
+        total = int(min(max(claimed, 0), TIME_IMPORT_CAP))
+
+    conn.execute("UPDATE users SET time_spent = ?, last_ping = ? WHERE id = ?", (total, now, user_id))
+    return total
+
+
+# ---------------------------------------------------------
+# FRIENDS (a friendship = both people added each other)
+# ---------------------------------------------------------
+
+def user_summary(conn, user_id, username, avatar=None):
     """What a friend card shows: levels, percent, beams, secret count."""
     progress = all_progress(conn, user_id)
     total = sum(p["total"] for p in progress.values())
@@ -527,6 +668,7 @@ def user_summary(conn, user_id, username):
     return {
         "id": user_id,
         "username": username,
+        "avatar": avatar,
         "levels_done": done,
         "total": total,
         "percent": round(done / total * 100) if total else 0,
@@ -535,15 +677,89 @@ def user_summary(conn, user_id, username):
     }
 
 
-def friend_ids(conn, user_id):
-    return {
-        row["friend_id"]
-        for row in conn.execute("SELECT friend_id FROM friends WHERE user_id = ?", (user_id,)).fetchall()
-    }
+def _summaries(conn, rows):
+    return [user_summary(conn, row["id"], row["username"], row["avatar"]) for row in rows]
+
+
+def _has_row(conn, user_id, friend_id):
+    return conn.execute(
+        "SELECT 1 FROM friends WHERE user_id = ? AND friend_id = ?", (user_id, friend_id)
+    ).fetchone() is not None
+
+
+def are_friends(conn, a, b):
+    return _has_row(conn, a, b) and _has_row(conn, b, a)
+
+
+def friend_state(conn, user_id, other_id):
+    """'friends', 'sent' (waiting for them), 'incoming' (waiting for you) or 'none'."""
+    mine = _has_row(conn, user_id, other_id)
+    theirs = _has_row(conn, other_id, user_id)
+    if mine and theirs:
+        return "friends"
+    if mine:
+        return "sent"
+    if theirs:
+        return "incoming"
+    return "none"
+
+
+def friends_of(conn, user_id):
+    rows = conn.execute(
+        """
+        SELECT users.id, users.username, users.avatar
+        FROM friends AS mine
+        JOIN friends AS theirs ON theirs.user_id = mine.friend_id AND theirs.friend_id = mine.user_id
+        JOIN users ON users.id = mine.friend_id
+        WHERE mine.user_id = ?
+        ORDER BY users.username
+        """,
+        (user_id,),
+    ).fetchall()
+    return _summaries(conn, rows)
+
+
+def incoming_requests(conn, user_id):
+    rows = conn.execute(
+        """
+        SELECT users.id, users.username, users.avatar
+        FROM friends
+        JOIN users ON users.id = friends.user_id
+        WHERE friends.friend_id = ?
+          AND NOT EXISTS (
+              SELECT 1 FROM friends AS mine
+              WHERE mine.user_id = ? AND mine.friend_id = friends.user_id
+          )
+        ORDER BY friends.added_at DESC
+        """,
+        (user_id, user_id),
+    ).fetchall()
+    return _summaries(conn, rows)
+
+
+def sent_requests(conn, user_id):
+    rows = conn.execute(
+        """
+        SELECT users.id, users.username, users.avatar
+        FROM friends
+        JOIN users ON users.id = friends.friend_id
+        WHERE friends.user_id = ?
+          AND NOT EXISTS (
+              SELECT 1 FROM friends AS theirs
+              WHERE theirs.user_id = friends.friend_id AND theirs.friend_id = ?
+          )
+        ORDER BY friends.added_at DESC
+        """,
+        (user_id, user_id),
+    ).fetchall()
+    return _summaries(conn, rows)
 
 
 def search_users(conn, user_id, query, limit=20):
-    """Registered accounts whose username contains `query` (not the searcher)."""
+    """
+    Registered accounts whose username contains `query` (never the
+    searcher, never anyone who switched search visibility off).
+    """
     text = (query or "").strip()
     if not text:
         return []
@@ -552,38 +768,42 @@ def search_users(conn, user_id, query, limit=20):
     pattern = "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
     rows = conn.execute(
         """
-        SELECT id, username FROM users
+        SELECT id, username, avatar, privacy FROM users
         WHERE username LIKE ? ESCAPE '\\' AND id != ?
         ORDER BY username
         LIMIT ?
         """,
-        (pattern, user_id, limit),
+        (pattern, user_id, limit * 3),
     ).fetchall()
 
-    added = friend_ids(conn, user_id)
     results = []
     for row in rows:
-        summary = user_summary(conn, row["id"], row["username"])
-        summary["added"] = row["id"] in added
+        if not clean_privacy(_parse_json(row["privacy"]))["search_visible"]:
+            continue
+        summary = user_summary(conn, row["id"], row["username"], row["avatar"])
+        summary["state"] = friend_state(conn, user_id, row["id"])
         results.append(summary)
+        if len(results) == limit:
+            break
     return results
 
 
-def friends_of(conn, user_id):
-    rows = conn.execute(
-        """
-        SELECT users.id, users.username FROM friends
-        JOIN users ON users.id = friends.friend_id
-        WHERE friends.user_id = ?
-        ORDER BY users.username
-        """,
-        (user_id,),
-    ).fetchall()
-    return [user_summary(conn, row["id"], row["username"]) for row in rows]
+def _parse_json(raw):
+    if not raw:
+        return {}
+    try:
+        value = json.loads(raw)
+    except ValueError:
+        return {}
+    return value if isinstance(value, dict) else {}
 
 
 def add_friend(conn, user_id, friend_id):
-    """Returns "self", "missing" or "ok". Adding twice is harmless."""
+    """
+    Records "user_id wants friend_id". Returns "self", "missing",
+    "friends" (they had already added you - you are friends now) or
+    "sent" (a request is waiting for them). Repeats are harmless.
+    """
     if friend_id == user_id:
         return "self"
     if conn.execute("SELECT 1 FROM users WHERE id = ?", (friend_id,)).fetchone() is None:
@@ -592,8 +812,53 @@ def add_friend(conn, user_id, friend_id):
         "INSERT OR IGNORE INTO friends (user_id, friend_id, added_at) VALUES (?, ?, ?)",
         (user_id, friend_id, datetime.utcnow().isoformat(timespec="seconds")),
     )
-    return "ok"
+    return "friends" if _has_row(conn, friend_id, user_id) else "sent"
 
 
-def remove_friend(conn, user_id, friend_id):
-    conn.execute("DELETE FROM friends WHERE user_id = ? AND friend_id = ?", (user_id, friend_id))
+def decline_request(conn, user_id, other_id):
+    """Drops the other person's request to you."""
+    conn.execute("DELETE FROM friends WHERE user_id = ? AND friend_id = ?", (other_id, user_id))
+
+
+def remove_friend(conn, user_id, other_id):
+    """Ends a friendship, or cancels a request you sent."""
+    conn.execute(
+        "DELETE FROM friends WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)",
+        (user_id, other_id, other_id, user_id),
+    )
+
+
+# ---------------------------------------------------------
+# LEADERBOARD TIMES
+# ---------------------------------------------------------
+
+def level_times(conn, course_slug, level_number, descending=False):
+    """Every player's best time on one level, minus those who opted out."""
+    rows = conn.execute(
+        """
+        SELECT users.id AS user_id, users.username AS username, users.avatar AS avatar,
+               level_progress.best_time_seconds AS seconds,
+               level_progress.completed_at AS completed_at
+        FROM level_progress
+        JOIN users ON users.id = level_progress.user_id
+        WHERE level_progress.course = ?
+          AND level_progress.level_number = ?
+          AND level_progress.completed = 1
+          AND level_progress.best_time_seconds IS NOT NULL
+        ORDER BY level_progress.best_time_seconds %s, level_progress.completed_at ASC
+        """ % ("DESC" if descending else "ASC"),
+        (course_slug, level_number),
+    ).fetchall()
+
+    hidden = hidden_from_boards(conn)
+    return [
+        {
+            "user_id": row["user_id"],
+            "username": row["username"],
+            "avatar": row["avatar"],
+            "seconds": row["seconds"],
+            "completed_at": (row["completed_at"] or "")[:10],
+        }
+        for row in rows
+        if row["user_id"] not in hidden
+    ]
