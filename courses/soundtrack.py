@@ -9,6 +9,7 @@ Keys are the names in curriculum.MUSIC:
     rhino       "Rhinoceros"               - the first time you enter a course's lab (one level per course)
     twisting    "Twisting"                 - a few of the lab levels
     hiding      "Hiding Your Reality"      - a few levels in every course
+    britons     "The Britons"              - the open-air levels right after the intro (Grove, jungle)
 
 Edit the tables below to move a track; a level not listed here falls
 back to the rule in `track_for()`. Nothing else needs to change.
@@ -17,7 +18,7 @@ back to the rule in `track_for()`. Nothing else needs to change.
 LEVEL_MUSIC = {
     # Consecutive playable levels never share a track (a test enforces it).
     "python": {
-        1: "ossuary", 2: "venus", 3: "ossuary", 4: "venus",
+        1: "ossuary", 2: "britons", 3: "venus", 4: "britons",
         6: "samba", 7: "hiding", 8: "samba", 9: "ossuary",
         12: "samba", 13: "twisting", 15: "samba", 16: "twisting",
         17: "ossuary",                      # the big snake: Cretaceous Dawn takes over when it appears
@@ -25,7 +26,7 @@ LEVEL_MUSIC = {
         24: "samba", 25: "twisting", 26: "samba", 27: "hiding", 29: "samba",
     },
     "cybersecurity": {
-        1: "venus", 2: "samba", 3: "ossuary", 5: "samba", 6: "twisting",
+        1: "venus", 2: "britons", 3: "ossuary", 5: "samba", 6: "twisting",
         8: "hiding", 9: "samba", 10: "venus", 11: "samba",
         13: "twisting", 14: "samba", 15: "hiding",
         16: "twisting", 17: "venus",        # Dr. Vex and the brain: Cretaceous Dawn on spawn

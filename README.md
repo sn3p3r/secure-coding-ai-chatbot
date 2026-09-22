@@ -91,7 +91,8 @@ level plays what: "Ossuary 1 - A Beginning" for beginnings, quieter
 fights and (looped) every obelisk, "Vibing Over Venus" on calm levels,
 "Blobby Samba" where you fight bugs and viruses, "Rhinoceros" the first
 time you enter each course's lab, "Twisting" in a few lab levels, "Hiding Your Reality" on a few levels
-in every course, and "Cretaceous Dawn" taking over the moment a boss is
+in every course, "The Britons" on the open-air levels right after the
+intro, and "Cretaceous Dawn" taking over the moment a boss is
 on screen. No two
 levels in a row share a track. A level's own `music` / `boss_music` field
 overrides the table. The track starts on the START / RESUME click and

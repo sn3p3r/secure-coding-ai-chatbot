@@ -75,6 +75,15 @@ MUSIC = {
         "source_url": "https://incompetech.com/music/royalty-free/",
         "changes": "Re-encoded to AAC 96 kbps for size. Level music on a few levels in every course.",
     },
+    "britons": {
+        "file": "audio/music/the-britons.m4a",
+        "title": "The Britons",
+        "artist": "Kevin MacLeod (incompetech.com)",
+        "license": "Creative Commons: By Attribution 4.0 License",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "source_url": "https://incompetech.com/music/royalty-free/",
+        "changes": "Re-encoded to AAC 96 kbps for size. Level music on the open-air levels right after each course's intro.",
+    },
     "rhino": {
         "file": "audio/music/rhinoceros.m4a",
         "title": "Rhinoceros",
