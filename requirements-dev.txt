@@ -1,0 +1,7 @@
+-r requirements.txt
+# Automated tests (tests/) talk to a running server over HTTP.
+requests>=2.32
+# Browser end-to-end tests (tests/e2e); run `python3 -m playwright install chromium` once.
+pytest>=8
+pytest-playwright>=0.6
+playwright>=1.50
