@@ -11,7 +11,7 @@ from collections import Counter
 
 from dotenv import load_dotenv
 
-from curriculum import COURSES, COURSE_ORDER, QUIZ_TO_COURSE, get_course, get_level, public_level, course_sections, mentor_briefing, resolve_challenge
+from curriculum import COURSES, COURSE_ORDER, QUIZ_TO_COURSE, get_course, get_level, public_level, course_sections, mentor_briefing, resolve_challenge, music_credits
 from challenges import check_answer, leaks_answer, swipe_card_verdict
 import progress as progress_db
 import achievements
@@ -123,6 +123,11 @@ def avatar_url_for(user_id, tag):
     if not tag:
         return None
     return url_for("avatar", user_id=user_id) + "?v=" + tag
+
+
+@app.context_processor
+def inject_credits():
+    return {"music_credits": music_credits()}
 
 
 @app.context_processor
@@ -554,6 +559,7 @@ def profile():
     language = progress_db.get_language(conn, user["id"])
     beams = progress_db.finished_courses(conn, user["id"])
     privacy = progress_db.get_privacy(conn, user["id"])
+    prefs = progress_db.get_prefs(conn, user["id"])
     conn.close()
 
     total_levels = sum(p["total"] for p in all_progress.values())
@@ -571,6 +577,7 @@ def profile():
         language=language,
         beams=beams,
         privacy=privacy,
+        prefs=prefs,
         privacy_levels=progress_db.PRIVACY_LEVELS,
         tab="settings" if request.args.get("tab") == "settings" else "overview",
         levels_done=levels_done,
@@ -659,6 +666,18 @@ def profile_picture_remove():
     conn.close()
 
     flash("Profile picture removed.")
+    return redirect(url_for("profile", tab="settings"))
+
+
+@app.route("/profile/prefs", methods=["POST"])
+@login_required
+def profile_prefs():
+    conn = get_db()
+    progress_db.set_prefs(conn, session["user_id"], request.form)
+    conn.commit()
+    conn.close()
+
+    flash("Game settings saved.")
     return redirect(url_for("profile", tab="settings"))
 
 
@@ -1127,6 +1146,7 @@ def course_level(course_slug, number):
     checkpoint = progress_db.get_checkpoint(conn, session["user_id"], course_slug, number)
     language = progress_db.get_language(conn, session["user_id"])
     beams = progress_db.finished_courses(conn, session["user_id"])
+    prefs = progress_db.get_prefs(conn, session["user_id"])
 
     progress_db.set_selected_course(conn, session["user_id"], course_slug)
     conn.commit()
@@ -1157,6 +1177,7 @@ def course_level(course_slug, number):
         character_json=character_data,
         inventory_json=inventory,
         checkpoint_json=checkpoint,
+        prefs=prefs,
         record=record,
         sidebar=sidebar,
         course_progress=course_progress,

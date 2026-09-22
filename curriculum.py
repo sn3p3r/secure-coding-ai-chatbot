@@ -16,6 +16,32 @@ Challenge types (checked server-side in challenges.py):
 
 from courses.common import DEFAULT_MAP
 from courses.banter import doctor_lines, guide_lines
+
+# Music catalogue. Files live in static/audio; credits are shown in the
+# site footer (CREDITS tab) and in static/audio/CREDITS.md.
+MUSIC = {
+    "ossuary": {
+        "file": "audio/music/ossuary-1-a-beginning.mp3",
+        "title": "Ossuary 1 - A Beginning",
+        "artist": "Kevin MacLeod (incompetech.com)",
+        "license": "Creative Commons: By Attribution 4.0 License",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "source_url": "https://incompetech.com/music/royalty-free/",
+        "changes": "Unchanged. Played once when a level starts and looped on the obelisk levels.",
+    },
+}
+
+
+def music_credits():
+    return list(MUSIC.values())
+
+
+def level_music(lvl):
+    """{"file", "loop"} for the browser, or None (quizzes, unknown keys)."""
+    track = MUSIC.get(lvl.get("music") or "")
+    if lvl["kind"] == "quiz" or track is None:
+        return None
+    return {"file": "/static/" + track["file"], "loop": bool(lvl["obelisk"]), "title": track["title"]}
 from courses.python_course import PYTHON_LEVELS
 from courses.cybersecurity import CYBER_LEVELS
 from courses.internet import INTERNET_LEVELS
@@ -285,6 +311,7 @@ def public_level(course, lvl, language=None, beams=None):
             "doctor": doctor_lines(level_theme(course, lvl)),
             "guide": guide_lines(lvl["guide"]),
         },
+        "music": level_music(lvl),
         "challenge": public_challenge,
         "hints": lvl["hints"],
         "reward": lvl["reward"],

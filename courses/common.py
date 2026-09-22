@@ -82,6 +82,7 @@ def level(number, title, **fields):
         "gate": False,           # draw the door as a firewall gate
         "finale": False,         # ends with the lights-out reveal
         "obelisk": False,        # the shared course finale: press the button, light the beam
+        "music": "ossuary",      # key into curriculum.MUSIC; plays once when the level starts, loops on obelisk levels
         "mimic": False,          # desk levels: the monitor mirrors the player
         "code_lines": [],        # lines that appear on the monitor as the player runs
         "challenge_by_language": None,   # {"python": {...}, "javascript": {...}}

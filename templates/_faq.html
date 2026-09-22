@@ -2,7 +2,12 @@
 <footer class="faq">
     <div class="faq-inner">
 
-        <p class="section-label">FAQ</p>
+        <nav class="tabs footer-tabs" data-tabs aria-label="Footer sections">
+            <button type="button" class="tab is-active" data-tab="faq">FAQ</button>
+            <button type="button" class="tab" data-tab="credits">CREDITS</button>
+        </nav>
+
+        <div data-panel="faq">
 
         <details>
             <summary>Where do I find SecureMentor?</summary>
@@ -33,6 +38,30 @@
             <summary>I lost my items or my place in a level.</summary>
             <p>Passing a door saves a checkpoint on the server. Reload the level and choose RESUME AT CHECKPOINT. Inventories are kept per course, so items never carry over between courses.</p>
         </details>
+
+        <details>
+            <summary>How do I turn the music off?</summary>
+            <p>Click the ♪ button in the corner of the game window or press M while playing. The choice is remembered on this device.</p>
+        </details>
+
+        </div>
+
+        <div data-panel="credits" hidden>
+
+            <p class="credit-intro">Cyber Academy is built with Flask, SQLite and hand-drawn pixel art. The music below is used under its licence; nothing here is ours to resell.</p>
+
+            <ul class="credit-list">
+                {% for track in music_credits %}
+                    <li>
+                        <strong>"{{ track.title }}"</strong> {{ track.artist }}<br>
+                        Licensed under <a href="{{ track.license_url }}" rel="license noopener" target="_blank">{{ track.license }}</a>
+                        · <a href="{{ track.source_url }}" rel="noopener" target="_blank">source</a><br>
+                        <span class="credit-note">{{ track.changes }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+
+        </div>
 
     </div>
 </footer>

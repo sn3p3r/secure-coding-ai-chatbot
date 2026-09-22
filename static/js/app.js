@@ -131,8 +131,10 @@ document.querySelectorAll("[data-tabs]").forEach((nav) => {
     const buttons =
         nav.querySelectorAll("[data-tab]");
 
+    // Only the panels that sit next to this nav: pages and the footer
+    // each have their own set.
     const panels =
-        document.querySelectorAll("[data-panel]");
+        nav.parentElement.querySelectorAll(":scope > [data-panel]");
 
     function show(name) {
 
@@ -149,14 +151,16 @@ document.querySelectorAll("[data-tabs]").forEach((nav) => {
 
         button.addEventListener("click", function() {
             show(button.dataset.tab);
-            history.replaceState(null, "", "#" + button.dataset.tab);
+            if (!nav.classList.contains("footer-tabs")) {
+                history.replaceState(null, "", "#" + button.dataset.tab);
+            }
         });
     });
 
     const fromHash =
         location.hash.slice(1);
 
-    if (fromHash && Array.from(buttons).some((b) => b.dataset.tab === fromHash)) {
+    if (fromHash && !nav.classList.contains("footer-tabs") && Array.from(buttons).some((b) => b.dataset.tab === fromHash)) {
         show(fromHash);
     }
 });

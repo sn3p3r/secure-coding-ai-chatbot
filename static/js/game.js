@@ -9,7 +9,7 @@
    Controls:  A / D move    W / SPACE jump    E talk / read / use
               F or click = use the item in the selected slot
               Q drop the selected item    1-5 select slot
-              ENTER continue dialogue
+              ENTER continue dialogue    M music on / off
 ========================================================= */
 
 (function () {
@@ -666,6 +666,11 @@
         if (typingInField()) return;
 
         const key = event.key.toLowerCase();
+
+        if (key === "m" && window.academyAudio) {
+            academyAudio.toggle();
+            return;
+        }
 
         if (state.phase === "intro") {
             skipIntro = true;
@@ -2276,6 +2281,9 @@
         celebrate(true);
         setObjective("LEVEL COMPLETE!");
         overlayDialogue.classList.add("hidden");
+
+        // The obelisk keeps its music; everywhere else the track fades with the level.
+        if (window.academyAudio && !LEVEL.obelisk) academyAudio.fadeOut(1800);
 
         // Let the confetti and the little hop play before the card slides in.
         setTimeout(renderCompleteCard, 900);
@@ -4025,6 +4033,7 @@
     buttonStart.addEventListener("click", function () {
         overlayLesson.classList.add("hidden");
         gameWindow.focus();
+        if (window.academyAudio) academyAudio.play(LEVEL.music);
 
         if (SAVED_CHECKPOINT) {
             // Starting over throws the old save away.
@@ -4047,6 +4056,7 @@
         buttonResume.addEventListener("click", function () {
             overlayLesson.classList.add("hidden");
             gameWindow.focus();
+            if (window.academyAudio) academyAudio.play(LEVEL.music);
             resumeLevel();
         });
     }

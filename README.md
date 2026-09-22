@@ -48,6 +48,7 @@ git-ignored because it holds user accounts.
 | `Q`            | drop the selected item              |
 | `1` - `5`      | select inventory slot               |
 | `Enter`        | next dialogue line                  |
+| `M`            | music on / off                      |
 
 Login → Home → choose a course → create your character → play. Each
 course page shows the section map on the left (current level in bold),
@@ -81,6 +82,18 @@ player's time-visibility setting. Doctors and guides rotate through the
 funny lines in `courses/banter.py` instead of repeating one sentence.
 Every signed-in page ends with a short FAQ, and the
 SecureMentor tab peeks up from the bottom-right corner on each page load.
+
+## Music
+
+`static/audio/music/` holds the soundtrack; `curriculum.MUSIC` maps a
+key to the file and its credit, and every level's `music` field (default
+`"ossuary"`) picks one. The track starts on the START / RESUME click,
+plays once, and loops on the obelisk levels. The ♪ button or the M key
+mutes it (remembered per device); a faint "now playing" line next to
+the level timer can be switched off under PROFILE › SETTINGS & PRIVACY.
+Credits appear in the CREDITS tab of the footer and in
+`static/audio/CREDITS.md`. The current track, "Ossuary 1 - A Beginning"
+by Kevin MacLeod (incompetech.com), is used under CC BY 4.0.
 
 ## Project layout
 

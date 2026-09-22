@@ -5017,3 +5017,110 @@ a.friend-avatar {
 .board-form {
     grid-template-columns: 1.2fr 1.6fr 1fr auto auto;
 }
+
+
+/* =========================================================
+   MUSIC BUTTON + CREDITS TAB
+========================================================= */
+
+.game-music {
+    position: absolute;
+
+    right: 52px;
+    bottom: 10px;
+
+    width: 36px;
+    height: 36px;
+
+    color: #dddddd;
+
+    background: rgba(10, 10, 10, 0.75);
+
+    border: 1px solid #444444;
+
+    font-size: 16px;
+
+    cursor: pointer;
+}
+
+.game-music:hover {
+    border-color: #ffffff;
+
+    color: #ffffff;
+}
+
+.game-music.is-off {
+    color: #666666;
+
+    text-decoration: line-through;
+}
+
+.footer-tabs {
+    margin: 0 0 18px;
+}
+
+.credit-intro {
+    max-width: 720px;
+
+    margin: 0 0 16px;
+
+    color: #a5a5a5;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+.credit-list {
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+}
+
+.credit-list li {
+    padding: 12px 0;
+
+    border-bottom: 1px solid #1e1e1e;
+
+    color: #cfcfcf;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+.credit-list strong {
+    color: #ffffff;
+}
+
+.credit-list a {
+    color: #dddddd;
+}
+
+.credit-note {
+    color: #8a8a8a;
+
+    font-size: 12px;
+}
+
+.hud-music {
+    margin-left: 14px;
+
+    max-width: 220px;
+
+    overflow: hidden;
+
+    color: #6a6a6a;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    opacity: 0.7;
+}

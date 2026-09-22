@@ -16,6 +16,7 @@ Schema additions (all backward compatible):
 """
 
 import json
+import sqlite3
 from datetime import datetime
 
 from curriculum import COURSES, COURSE_ORDER, get_level
@@ -29,6 +30,19 @@ CHECKPOINT_MAX_BYTES = 16000
 # ---------------------------------------------------------
 # MIGRATIONS
 # ---------------------------------------------------------
+
+def _add_column(conn, table, definition):
+    """
+    ALTER TABLE that stays quiet when the column already exists: the
+    Flask reloader (and several gunicorn workers) can run migrate() at
+    the same moment.
+    """
+    try:
+        conn.execute("ALTER TABLE %s ADD COLUMN %s" % (table, definition))
+    except sqlite3.OperationalError as error:
+        if "duplicate column" not in str(error):
+            raise
+
 
 def migrate(conn):
     """Create new tables / columns if they do not exist yet."""
@@ -54,34 +68,37 @@ def migrate(conn):
     }
 
     if "selected_course" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN selected_course TEXT")
+        _add_column(conn, "users", "selected_course TEXT")
 
     if "character" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN character TEXT")
+        _add_column(conn, "users", "character TEXT")
 
     if "inventory" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN inventory TEXT")
+        _add_column(conn, "users", "inventory TEXT")
 
     if "language" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN language TEXT")
+        _add_column(conn, "users", "language TEXT")
 
     if "website_idea" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN website_idea TEXT")
+        _add_column(conn, "users", "website_idea TEXT")
 
     if "kills" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN kills TEXT")
+        _add_column(conn, "users", "kills TEXT")
 
     if "avatar" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN avatar TEXT")
+        _add_column(conn, "users", "avatar TEXT")
 
     if "privacy" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN privacy TEXT")
+        _add_column(conn, "users", "privacy TEXT")
 
     if "time_spent" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN time_spent INTEGER NOT NULL DEFAULT 0")
+        _add_column(conn, "users", "time_spent INTEGER NOT NULL DEFAULT 0")
 
     if "last_ping" not in existing:
-        conn.execute("ALTER TABLE users ADD COLUMN last_ping REAL")
+        _add_column(conn, "users", "last_ping REAL")
+
+    if "prefs" not in existing:
+        _add_column(conn, "users", "prefs TEXT")
 
     conn.execute("""
         CREATE TABLE IF NOT EXISTS achievements (
@@ -610,6 +627,23 @@ def set_privacy(conn, user_id, values, from_form=False):
     cleaned = clean_privacy(values, from_form=from_form)
     conn.execute("UPDATE users SET privacy = ? WHERE id = ?", (json.dumps(cleaned), user_id))
     return cleaned
+
+
+PREF_DEFAULTS = {
+    "now_playing": True,     # faint "now playing" line in the level HUD
+}
+
+
+def get_prefs(conn, user_id):
+    stored = _parse_json(_user_field(conn, user_id, "prefs"))
+    return {key: bool(stored.get(key, default)) for key, default in PREF_DEFAULTS.items()}
+
+
+def set_prefs(conn, user_id, form):
+    """Checkbox form: a missing key means off."""
+    prefs = {key: key in form for key in PREF_DEFAULTS}
+    conn.execute("UPDATE users SET prefs = ? WHERE id = ?", (json.dumps(prefs), user_id))
+    return prefs
 
 
 def allowed(setting, relation):
