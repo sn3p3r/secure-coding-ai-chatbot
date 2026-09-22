@@ -7,7 +7,7 @@ which level plays what is in `courses/soundtrack.py`.
 
 ## Music
 
-All six tracks are by Kevin MacLeod (incompetech.com), licensed under
+All seven tracks are by Kevin MacLeod (incompetech.com), licensed under
 Creative Commons: By Attribution 4.0 License,
 http://creativecommons.org/licenses/by/4.0/. They were re-encoded from
 the artist's MP3s to AAC at 96 kbps (`.m4a`) to keep the download small;
@@ -21,6 +21,7 @@ the music itself is unchanged. The browser loops them where noted.
 | `music/cretaceous-dawn.m4a` | "Cretaceous Dawn" | Looped from the moment a boss appears |
 | `music/rhinoceros.m4a` | "Rhinoceros" | The first time you enter each course's lab (one level per course) |
 | `music/twisting.m4a` | "Twisting" | A few of the lab levels |
+| `music/hiding-your-reality.m4a` | "Hiding Your Reality" | A few levels in every course |
 
 Attribution text as requested by the artist, one per track:
 
@@ -30,6 +31,7 @@ Attribution text as requested by the artist, one per track:
 > "Cretaceous Dawn" Kevin MacLeod (incompetech.com)
 > "Rhinoceros" Kevin MacLeod (incompetech.com)
 > "Twisting" Kevin MacLeod (incompetech.com)
+> "Hiding Your Reality" Kevin MacLeod (incompetech.com)
 > Licensed under Creative Commons: By Attribution 4.0 License
 > http://creativecommons.org/licenses/by/4.0/
 

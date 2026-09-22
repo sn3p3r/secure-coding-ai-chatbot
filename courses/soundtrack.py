@@ -8,6 +8,7 @@ Keys are the names in curriculum.MUSIC:
     cretaceous  "Cretaceous Dawn"          - the moment a boss shows up (looped)
     rhino       "Rhinoceros"               - the first time you enter a course's lab (one level per course)
     twisting    "Twisting"                 - a few of the lab levels
+    hiding      "Hiding Your Reality"      - a few levels in every course
 
 Edit the tables below to move a track; a level not listed here falls
 back to the rule in `track_for()`. Nothing else needs to change.
@@ -17,24 +18,24 @@ LEVEL_MUSIC = {
     # Consecutive playable levels never share a track (a test enforces it).
     "python": {
         1: "ossuary", 2: "venus", 3: "ossuary", 4: "venus",
-        6: "samba", 7: "ossuary", 8: "samba", 9: "ossuary",
+        6: "samba", 7: "hiding", 8: "samba", 9: "ossuary",
         12: "samba", 13: "twisting", 15: "samba", 16: "twisting",
         17: "ossuary",                      # the big snake: Cretaceous Dawn takes over when it appears
-        19: "samba", 20: "twisting", 21: "samba", 22: "ossuary",
-        24: "samba", 25: "twisting", 26: "samba", 27: "ossuary", 29: "samba",
+        19: "samba", 20: "twisting", 21: "samba", 22: "hiding",
+        24: "samba", 25: "twisting", 26: "samba", 27: "hiding", 29: "samba",
     },
     "cybersecurity": {
         1: "venus", 2: "samba", 3: "ossuary", 5: "samba", 6: "twisting",
-        8: "ossuary", 9: "samba", 10: "venus", 11: "samba",
-        13: "twisting", 14: "samba", 15: "ossuary",
+        8: "hiding", 9: "samba", 10: "venus", 11: "samba",
+        13: "twisting", 14: "samba", 15: "hiding",
         16: "twisting", 17: "venus",        # Dr. Vex and the brain: Cretaceous Dawn on spawn
     },
     "internet": {
-        1: "ossuary", 2: "venus", 3: "ossuary", 4: "venus", 5: "ossuary", 7: "venus",
-        8: "ossuary", 9: "samba", 11: "ossuary", 13: "venus", 14: "ossuary", 15: "venus",
+        1: "ossuary", 2: "venus", 3: "ossuary", 4: "venus", 5: "hiding", 7: "venus",
+        8: "ossuary", 9: "samba", 11: "ossuary", 13: "venus", 14: "hiding", 15: "venus",
     },
     "secure-coding": {
-        2: "ossuary", 3: "samba", 4: "venus", 5: "ossuary", 6: "samba",
+        2: "ossuary", 3: "samba", 4: "venus", 5: "hiding", 6: "samba",
     },
 }
 

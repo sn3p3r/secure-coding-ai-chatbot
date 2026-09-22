@@ -66,6 +66,15 @@ MUSIC = {
         "source_url": "https://incompetech.com/music/royalty-free/",
         "changes": "Re-encoded to AAC 96 kbps for size. Level music in some of the lab levels.",
     },
+    "hiding": {
+        "file": "audio/music/hiding-your-reality.m4a",
+        "title": "Hiding Your Reality",
+        "artist": "Kevin MacLeod (incompetech.com)",
+        "license": "Creative Commons: By Attribution 4.0 License",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "source_url": "https://incompetech.com/music/royalty-free/",
+        "changes": "Re-encoded to AAC 96 kbps for size. Level music on a few levels in every course.",
+    },
     "rhino": {
         "file": "audio/music/rhinoceros.m4a",
         "title": "Rhinoceros",

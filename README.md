@@ -90,8 +90,9 @@ key to the file and its credit, and `courses/soundtrack.py` says which
 level plays what: "Ossuary 1 - A Beginning" for beginnings, quieter
 fights and (looped) every obelisk, "Vibing Over Venus" on calm levels,
 "Blobby Samba" where you fight bugs and viruses, "Rhinoceros" the first
-time you enter each course's lab, "Twisting" in a few lab levels, and
-"Cretaceous Dawn" taking over the moment a boss is on screen. No two
+time you enter each course's lab, "Twisting" in a few lab levels, "Hiding Your Reality" on a few levels
+in every course, and "Cretaceous Dawn" taking over the moment a boss is
+on screen. No two
 levels in a row share a track. A level's own `music` / `boss_music` field
 overrides the table. The track starts on the START / RESUME click and
 plays once (bosses and obelisks loop). The ♪ button or the M key
