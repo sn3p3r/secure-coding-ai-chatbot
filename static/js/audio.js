@@ -23,7 +23,8 @@ window.academyAudio = (function () {
     }
 
     let enabled = true;
-    let audio = null;
+    let audio = null;           // the level's track
+    let bossAudio = null;       // takes over while a boss is on screen
     let requested = false;      // START was pressed on this page
     let fadeTimer = null;
 
@@ -52,6 +53,7 @@ window.academyAudio = (function () {
         if (audio || !track || !track.file) return;
         title = track.title || "";
         audio = new Audio(track.file);
+        audio.dataset.title = title;
         audio.loop = !!track.loop;
         audio.volume = VOLUME;
         audio.preload = "auto";
@@ -60,12 +62,65 @@ window.academyAudio = (function () {
         audio.addEventListener("ended", () => showNowPlaying(false));
     }
 
-    function resume() {
-        if (!audio || !enabled || !requested) return;
-        clearTimeout(fadeTimer);
-        audio.volume = VOLUME;
-        const attempt = audio.play();
+    function safePlay(element) {
+        const attempt = element.play();
         if (attempt && attempt.catch) attempt.catch(() => {});
+    }
+
+    function resume() {
+        if (!enabled || !requested) return;
+        clearTimeout(fadeTimer);
+        if (bossAudio) {
+            bossAudio.volume = VOLUME;
+            safePlay(bossAudio);
+            return;
+        }
+        if (!audio) return;
+        audio.volume = VOLUME;
+        safePlay(audio);
+    }
+
+    function fade(element, ms, then) {
+        const steps = 20;
+        const drop = element.volume / steps;
+        let done = 0;
+        (function step() {
+            done += 1;
+            element.volume = Math.max(0, element.volume - drop);
+            if (done < steps) {
+                fadeTimer = setTimeout(step, (ms || 1500) / steps);
+            } else {
+                element.pause();
+                if (then) then();
+            }
+        })();
+    }
+
+    // A boss appeared: hand over to its track (looped) until it is beaten.
+    function bossStart(track) {
+        if (!track || !track.file || bossAudio) return;
+        title = track.title || title;
+        bossAudio = new Audio(track.file);
+        bossAudio.loop = true;
+        bossAudio.volume = VOLUME;
+        bossAudio.addEventListener("play", () => showNowPlaying(true));
+        bossAudio.addEventListener("pause", () => showNowPlaying(false));
+        if (audio && !audio.paused) fade(audio, 700);
+        if (enabled && requested) safePlay(bossAudio);
+        else showNowPlaying(false);
+    }
+
+    // The boss is gone: fade its track out and let the level track finish.
+    function bossEnd() {
+        if (!bossAudio) return;
+        const finished = bossAudio;
+        bossAudio = null;
+        fade(finished, 1200, () => {
+            if (audio && audio.currentTime > 0 && !audio.ended) {
+                title = audio.dataset.title || title;
+                resume();
+            }
+        });
     }
 
     // Called from the START / RESUME click: the first call on a page starts the track.
@@ -77,30 +132,25 @@ window.academyAudio = (function () {
     }
 
     function fadeOut(ms) {
-        if (!audio || audio.paused) return;
-        const steps = 20;
-        const drop = audio.volume / steps;
-        let done = 0;
         clearTimeout(fadeTimer);
-        (function step() {
-            done += 1;
-            audio.volume = Math.max(0, audio.volume - drop);
-            if (done < steps) {
-                fadeTimer = setTimeout(step, (ms || 1500) / steps);
-            } else {
-                audio.pause();
-                audio.currentTime = 0;
-                requested = false;
-            }
-        })();
+        if (bossAudio && !bossAudio.paused) fade(bossAudio, ms || 1500);
+        if (!audio || audio.paused) return;
+        fade(audio, ms || 1500, () => {
+            audio.currentTime = 0;
+            requested = false;
+        });
     }
 
     function toggle() {
         enabled = !enabled;
         remember();
         paint();
-        if (enabled) resume();
-        else if (audio) audio.pause();
+        if (enabled) {
+            resume();
+        } else {
+            if (audio) audio.pause();
+            if (bossAudio) bossAudio.pause();
+        }
     }
 
     if (button) {
@@ -113,6 +163,6 @@ window.academyAudio = (function () {
 
     paint();
 
-    return { play, fadeOut, toggle, isOn: () => enabled };
+    return { play, fadeOut, toggle, bossStart, bossEnd, isOn: () => enabled };
 
 })();

@@ -1002,6 +1002,7 @@
     function killEnemy(enemy) {
         enemy.alive = false;
         state.kills[enemy.type] = (state.kills[enemy.type] || 0) + 1;
+        if (BOSS_TYPES.includes(enemy.type) && window.academyAudio) academyAudio.bossEnd();
         burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, enemy.type === "bug" ? "#7a1f1f" : theme.accent, 24);
 
         if (enemy.type === "boss") {
@@ -2603,6 +2604,13 @@
         enemies.forEach((enemy) => {
             if (!enemy.alive) return;
             if (enemy.hitFlash > 0) enemy.hitFlash -= 1;
+
+            // The first time a boss is on screen its music takes over.
+            if (!state.bossMusic && BOSS_TYPES.includes(enemy.type)
+                && enemy.x + enemy.w > camera.x - 8 && enemy.x < camera.x + VIEW_W + 8) {
+                state.bossMusic = true;
+                if (window.academyAudio) academyAudio.bossStart(LEVEL.boss_music);
+            }
 
             // Stunned enemies just stand there (gravity still applies) and
             // cannot hurt the player - the window for a follow-up strike.

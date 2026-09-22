@@ -560,6 +560,7 @@ def profile():
     beams = progress_db.finished_courses(conn, user["id"])
     privacy = progress_db.get_privacy(conn, user["id"])
     prefs = progress_db.get_prefs(conn, user["id"])
+    rename_wait = progress_db.username_change_wait(conn, user["id"], time.time())
     conn.close()
 
     total_levels = sum(p["total"] for p in all_progress.values())
@@ -578,6 +579,7 @@ def profile():
         beams=beams,
         privacy=privacy,
         prefs=prefs,
+        rename_wait_days=(rename_wait + 86399) // 86400,
         privacy_levels=progress_db.PRIVACY_LEVELS,
         tab="settings" if request.args.get("tab") == "settings" else "overview",
         levels_done=levels_done,
@@ -690,6 +692,46 @@ def profile_privacy():
     conn.close()
 
     flash("Privacy settings saved.")
+    return redirect(url_for("profile", tab="settings"))
+
+
+@app.route("/profile/username", methods=["POST"])
+@login_required
+def profile_username():
+    """Rename the account: once every 14 days, same rules as sign-up."""
+    new_name = request.form.get("username", "").strip()
+    user_id = session["user_id"]
+    now = time.time()
+
+    conn = get_db()
+
+    wait = progress_db.username_change_wait(conn, user_id, now)
+    if wait:
+        conn.close()
+        flash("You can change your username again in %d day%s." % ((wait + 86399) // 86400, "" if wait <= 86400 else "s"), "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    if not USERNAME_RE.fullmatch(new_name):
+        conn.close()
+        flash("Usernames can only use letters, numbers and underscores (3 to 20 characters).", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    if new_name == session.get("username"):
+        conn.close()
+        flash("That is already your username.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    if progress_db.username_taken(conn, new_name, except_id=user_id):
+        conn.close()
+        flash("That username is already taken.", "error")
+        return redirect(url_for("profile", tab="settings"))
+
+    progress_db.set_username(conn, user_id, new_name, now)
+    conn.commit()
+    conn.close()
+
+    session["username"] = new_name
+    flash("Username changed to %s. Your friends, progress and times are untouched." % new_name)
     return redirect(url_for("profile", tab="settings"))
 
 

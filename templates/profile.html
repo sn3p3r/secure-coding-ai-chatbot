@@ -411,6 +411,21 @@
 
             <div class="account-grid">
 
+                <form method="post" action="{{ url_for('profile_username') }}" class="account-form">
+                    <h3>Change username</h3>
+                    <p class="form-hint">Once every 14 days. Letters, numbers and underscores, 3 to 20 characters. Friends, progress, badges and times stay with you; only the name people see changes.</p>
+                    <label>NEW USERNAME
+                        <input type="text" name="username" value="{{ user['username'] }}" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" autocomplete="username" required {% if rename_wait_days %}disabled{% endif %}>
+                    </label>
+                    <div class="picture-actions">
+                        {% if rename_wait_days %}
+                            <span class="friend-added">NEXT CHANGE IN {{ rename_wait_days }} DAY{% if rename_wait_days != 1 %}S{% endif %}</span>
+                        {% else %}
+                            <button type="submit" class="outline-button">CHANGE USERNAME</button>
+                        {% endif %}
+                    </div>
+                </form>
+
                 <form method="post" action="{{ url_for('profile_password') }}" class="account-form">
                     <h3>Change password</h3>
                     <label>CURRENT PASSWORD

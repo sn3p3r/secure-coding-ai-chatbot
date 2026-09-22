@@ -100,6 +100,9 @@ def migrate(conn):
     if "prefs" not in existing:
         _add_column(conn, "users", "prefs TEXT")
 
+    if "username_changed_at" not in existing:
+        _add_column(conn, "users", "username_changed_at REAL")
+
     conn.execute("""
         CREATE TABLE IF NOT EXISTS achievements (
             user_id INTEGER NOT NULL,
@@ -1123,6 +1126,33 @@ def login_succeeded(conn, key):
 # ---------------------------------------------------------
 # ACCOUNT
 # ---------------------------------------------------------
+
+USERNAME_COOLDOWN = 14 * 24 * 3600     # one change per fortnight
+
+
+def username_change_wait(conn, user_id, now):
+    """Seconds until this user may change their name again, or 0."""
+    changed = _user_field(conn, user_id, "username_changed_at")
+    if not changed:
+        return 0
+    return max(0, int(float(changed) + USERNAME_COOLDOWN - now))
+
+
+def username_taken(conn, username, except_id=None):
+    row = conn.execute("SELECT id FROM users WHERE lower(username) = lower(?)", (username,)).fetchone()
+    return row is not None and row["id"] != except_id
+
+
+def set_username(conn, user_id, username, now):
+    """
+    Friends, blocks, progress, achievements and times all point at the
+    user id, so a rename changes nothing but the label people see.
+    """
+    conn.execute(
+        "UPDATE users SET username = ?, username_changed_at = ? WHERE id = ?",
+        (username, now, user_id),
+    )
+
 
 def set_password_hash(conn, user_id, password_hash):
     conn.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))

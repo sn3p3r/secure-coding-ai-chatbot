@@ -86,14 +86,25 @@ SecureMentor tab peeks up from the bottom-right corner on each page load.
 ## Music
 
 `static/audio/music/` holds the soundtrack; `curriculum.MUSIC` maps a
-key to the file and its credit, and every level's `music` field (default
-`"ossuary"`) picks one. The track starts on the START / RESUME click,
-plays once, and loops on the obelisk levels. The ♪ button or the M key
+key to the file and its credit, and `courses/soundtrack.py` says which
+level plays what: "Ossuary 1 - A Beginning" for beginnings, quieter
+fights and (looped) every obelisk, "Vibing Over Venus" on calm levels,
+"Blobby Samba" where you fight bugs and viruses, "Rhinoceros" the first
+time you enter each course's lab, and "Cretaceous Dawn" taking over the
+moment a boss is on screen. A level's own `music` / `boss_music` field
+overrides the table. The track starts on the START / RESUME click and
+plays once (bosses and obelisks loop). The ♪ button or the M key
 mutes it (remembered per device); a faint "now playing" line next to
 the level timer can be switched off under PROFILE › SETTINGS & PRIVACY.
 Credits appear in the CREDITS tab of the footer and in
-`static/audio/CREDITS.md`. The current track, "Ossuary 1 - A Beginning"
-by Kevin MacLeod (incompetech.com), is used under CC BY 4.0.
+`static/audio/CREDITS.md`. All tracks are by Kevin MacLeod
+(incompetech.com), used under CC BY 4.0.
+
+`python3 tools/grant_all.py <username>` marks every level complete and
+awards every achievement for a demo account (`--revoke` undoes it).
+Usernames can be changed once every 14 days from the settings tab;
+friendships, progress and times follow the account id, so nothing is
+lost.
 
 ## Project layout
 

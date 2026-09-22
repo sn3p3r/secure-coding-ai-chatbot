@@ -16,6 +16,7 @@ Challenge types (checked server-side in challenges.py):
 
 from courses.common import DEFAULT_MAP
 from courses.banter import doctor_lines, guide_lines
+from courses.soundtrack import track_for, boss_track_for
 
 # Music catalogue. Files live in static/audio; credits are shown in the
 # site footer (CREDITS tab) and in static/audio/CREDITS.md.
@@ -27,7 +28,43 @@ MUSIC = {
         "license": "Creative Commons: By Attribution 4.0 License",
         "license_url": "http://creativecommons.org/licenses/by/4.0/",
         "source_url": "https://incompetech.com/music/royalty-free/",
-        "changes": "Unchanged. Played once when a level starts and looped on the obelisk levels.",
+        "changes": "Unchanged. Level music on beginnings and quieter fights; looped on the obelisk levels.",
+    },
+    "venus": {
+        "file": "audio/music/vibing-over-venus.mp3",
+        "title": "Vibing Over Venus",
+        "artist": "Kevin MacLeod (incompetech.com)",
+        "license": "Creative Commons: By Attribution 4.0 License",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "source_url": "https://incompetech.com/music/royalty-free/",
+        "changes": "Unchanged. Level music on the calm levels.",
+    },
+    "samba": {
+        "file": "audio/music/blobby-samba.mp3",
+        "title": "Blobby Samba",
+        "artist": "Kevin MacLeod (incompetech.com)",
+        "license": "Creative Commons: By Attribution 4.0 License",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "source_url": "https://incompetech.com/music/royalty-free/",
+        "changes": "Unchanged. Level music where you fight bugs and viruses.",
+    },
+    "cretaceous": {
+        "file": "audio/music/cretaceous-dawn.mp3",
+        "title": "Cretaceous Dawn",
+        "artist": "Kevin MacLeod (incompetech.com)",
+        "license": "Creative Commons: By Attribution 4.0 License",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "source_url": "https://incompetech.com/music/royalty-free/",
+        "changes": "Unchanged. Looped by the browser while a boss is on screen.",
+    },
+    "rhino": {
+        "file": "audio/music/rhinoceros.mp3",
+        "title": "Rhinoceros",
+        "artist": "Kevin MacLeod (incompetech.com)",
+        "license": "Creative Commons: By Attribution 4.0 License",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "source_url": "https://incompetech.com/music/royalty-free/",
+        "changes": "Unchanged. Level music the first time you enter each course's lab.",
     },
 }
 
@@ -36,12 +73,21 @@ def music_credits():
     return list(MUSIC.values())
 
 
-def level_music(lvl):
-    """{"file", "loop"} for the browser, or None (quizzes, unknown keys)."""
-    track = MUSIC.get(lvl.get("music") or "")
-    if lvl["kind"] == "quiz" or track is None:
+def _public_track(key, loop):
+    track = MUSIC.get(key or "")
+    if track is None:
         return None
-    return {"file": "/static/" + track["file"], "loop": bool(lvl["obelisk"]), "title": track["title"]}
+    return {"file": "/static/" + track["file"], "loop": loop, "title": track["title"]}
+
+
+def level_music(course, lvl):
+    """{"file", "loop", "title"} for the browser, or None (quizzes, unknown keys)."""
+    return _public_track(track_for(course["slug"], lvl), loop=bool(lvl["obelisk"]))
+
+
+def boss_music(lvl):
+    """The track that takes over when the boss shows up (looped), or None."""
+    return _public_track(boss_track_for(lvl), loop=True)
 from courses.python_course import PYTHON_LEVELS
 from courses.cybersecurity import CYBER_LEVELS
 from courses.internet import INTERNET_LEVELS
@@ -311,7 +357,8 @@ def public_level(course, lvl, language=None, beams=None):
             "doctor": doctor_lines(level_theme(course, lvl)),
             "guide": guide_lines(lvl["guide"]),
         },
-        "music": level_music(lvl),
+        "music": level_music(course, lvl),
+        "boss_music": boss_music(lvl),
         "challenge": public_challenge,
         "hints": lvl["hints"],
         "reward": lvl["reward"],
