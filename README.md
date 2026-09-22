@@ -72,7 +72,14 @@ the database and `data/reports.jsonl` for the site owner). The account
 section changes the password or deletes the account with everything in
 it. Ten wrong passwords within five minutes lock a username for five
 minutes. Uploaded
-pictures are shrunk to a 256 px square when Pillow is installed. Every signed-in page ends with a short FAQ, and the
+pictures are shrunk to a 256 px square when Pillow is installed.
+Usernames are 3 to 20 letters, digits or underscores, unique regardless
+of case. Time spent is counted on the server while a page is open and
+visible (30-second pings; gaps over two minutes are idle and skipped),
+and the leaderboard's TIME IN THE ACADEMY tab ranks it, following each
+player's time-visibility setting. Doctors and guides rotate through the
+funny lines in `courses/banter.py` instead of repeating one sentence.
+Every signed-in page ends with a short FAQ, and the
 SecureMentor tab peeks up from the bottom-right corner on each page load.
 
 ## Project layout

@@ -712,6 +712,53 @@
 
 
     /* -----------------------------------------------------
+       BANTER
+       Level lines come first; after that a shuffled pool for the
+       level's theme, never repeating the line just heard.
+    ----------------------------------------------------- */
+
+    const banter = { order: {}, index: {}, last: {} };
+
+    function shuffled(list) {
+        const copy = list.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    function nextBanter(pool, key) {
+        if (!pool || !pool.length) return "...";
+        if (!banter.order[key] || banter.order[key].length !== pool.length) {
+            banter.order[key] = shuffled(pool);
+            banter.index[key] = 0;
+        }
+        const order = banter.order[key];
+        let line = order[banter.index[key] % order.length];
+        banter.index[key] += 1;
+        if (line === banter.last[key] && order.length > 1) {
+            line = order[banter.index[key] % order.length];
+            banter.index[key] += 1;
+        }
+        banter.last[key] = line;
+        return line;
+    }
+
+    function doctorSpeech(doctor) {
+        const own = LEVEL.npcs || [];
+        doctor.said = (doctor.said || 0) + 1;
+
+        // The first chat is the level's own line for this doctor.
+        if (doctor.said === 1 && own.length) return own[doctor.line % own.length];
+
+        const pool = (LEVEL.banter && LEVEL.banter.doctor) || [];
+        if (!pool.length) return own.length ? own[(doctor.line + doctor.said - 1) % own.length] : "...";
+        return nextBanter(pool, "doctor");
+    }
+
+
+    /* -----------------------------------------------------
        DIALOGUE
     ----------------------------------------------------- */
 
@@ -1294,6 +1341,12 @@
         }
 
         if (target.type === "npc") {
+            const quips = (LEVEL.banter && LEVEL.banter.guide) || [];
+            if (state.metByte && quips.length) {
+                // The briefing was heard already: a quip instead of the same speech.
+                startDialogue(GUIDE, [nextBanter(quips, "guide")], null);
+                return;
+            }
             startDialogue(GUIDE, LEVEL.dialogue.length ? LEVEL.dialogue : ["..."], function () {
                 state.metByte = true;
                 setObjective(LEVEL.boss && !state.bossDefeated ? (LEVEL.finale ? "Stomp the brain" : "Defeat the boss") : LEVEL.goal);
@@ -1301,8 +1354,7 @@
         }
 
         else if (target.type === "doctor") {
-            const lines = LEVEL.npcs && LEVEL.npcs.length ? LEVEL.npcs : ["..."];
-            startDialogue("DOCTOR", [lines[target.line % lines.length]], null);
+            startDialogue("DOCTOR", [doctorSpeech(target)], null);
         }
 
         else if (target.type === "mentorbot") {

@@ -1,27 +1,27 @@
 /* =========================================================
    TIME TRACKING
+   The server owns the count (users.time_spent). Every 30 s the page
+   pings it while it is visible; the server adds the real gap since the
+   last ping and answers with the total, which the top bar shows and
+   counts up between pings. Hidden tabs do not ping, so time only grows
+   while somebody actually has the Academy in front of them.
 ========================================================= */
 
-const TIME_KEY = "cyberAcademyTime";
+const TIME_KEY = "cyberAcademyTime";      // the old browser-only counter, imported once
 
 const timeElement =
     document.getElementById("time-spent");
 
-// The server keeps the count that other players may see; the local
-// counter only bridges the seconds between two pings.
-const serverSeconds =
+let totalSeconds =
     timeElement ? Number(timeElement.dataset.seconds || 0) : 0;
 
-let localSeconds = 0;
+let legacySeconds = 0;
 
 try {
-    localSeconds = Number(localStorage.getItem(TIME_KEY)) || 0;
+    legacySeconds = Number(localStorage.getItem(TIME_KEY)) || 0;
 } catch (error) {
-    localSeconds = 0;
+    legacySeconds = 0;
 }
-
-let totalSeconds =
-    Math.max(localSeconds, serverSeconds);
 
 
 function formatTime(seconds) {
@@ -71,13 +71,11 @@ function updateTimeDisplays() {
 
 setInterval(() => {
 
-    totalSeconds++;
-
-    try {
-        localStorage.setItem(TIME_KEY, totalSeconds);
-    } catch (error) {
-        // private mode: the server count still grows through the pings
+    if (document.visibilityState === "hidden") {
+        return;
     }
+
+    totalSeconds++;
 
     updateTimeDisplays();
 
@@ -87,24 +85,40 @@ setInterval(() => {
 updateTimeDisplays();
 
 
-/*
- * Every 30 s tell the server the page is still open. The server adds
- * the real gap since the last ping; nothing here can inflate it.
- */
 if (timeElement && timeElement.dataset.seconds !== undefined) {
 
     const ping = function() {
 
+        if (document.visibilityState === "hidden") {
+            return;
+        }
+
         fetch("/api/time/ping", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ seconds: totalSeconds })
-        }).catch(() => {});
+            body: JSON.stringify({ seconds: legacySeconds })
+        })
+            .then((response) => response.ok ? response.json() : null)
+            .then((data) => {
+
+                if (data && typeof data.seconds === "number") {
+                    // Resync so every open tab shows the same number.
+                    totalSeconds = data.seconds;
+                    updateTimeDisplays();
+                }
+            })
+            .catch(() => {});
     };
 
     ping();
 
     setInterval(ping, 30000);
+
+    document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "visible") {
+            ping();
+        }
+    });
 }
 
 

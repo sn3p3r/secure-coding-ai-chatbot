@@ -48,6 +48,13 @@
         <!-- Level titles per course, used to fill the level box when the course changes -->
         <script id="levels-data" type="application/json">{{ levels_by_course|tojson }}</script>
 
+        <nav class="tabs" data-tabs aria-label="Leaderboards">
+            <button type="button" class="tab {% if board == 'levels' %}is-active{% endif %}" data-tab="levels">LEVEL TIMES</button>
+            <button type="button" class="tab {% if board == 'time' %}is-active{% endif %}" data-tab="time">TIME IN THE ACADEMY</button>
+        </nav>
+
+        <div data-panel="levels" {% if board != 'levels' %}hidden{% endif %}>
+
         <form method="get" action="{{ url_for('leaderboard') }}" class="board-form">
 
             <label>
@@ -147,6 +154,50 @@
         {% elif not error %}
             <p class="board-empty">Choose a course above to see its times.</p>
         {% endif %}
+
+        </div>
+
+
+        <div data-panel="time" {% if board != 'time' %}hidden{% endif %}>
+            <section class="board-card board-wide">
+
+                <h2>MOST TIME IN THE ACADEMY</h2>
+                <p class="board-note">Counted while a page is open and visible, in 30-second ticks. Who appears follows each player's privacy settings: "Who can see your time spent" and "Show my times on the leaderboard".</p>
+
+                {% if time_board %}
+                    <table class="board-table records-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>PLAYER</th>
+                                <th>TIME SPENT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in time_board %}
+                                <tr class="{% if row.user_id == me %}board-me{% endif %}">
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        <a class="board-player" href="{{ url_for('public_profile', username=row.username) }}">
+                                            <span class="friend-avatar">{% if row.avatar %}<img class="avatar-img" src="{{ url_for('avatar', user_id=row.user_id) }}?v={{ row.avatar }}" alt="">{% else %}{{ row.username[0]|upper }}{% endif %}</span>
+                                            {{ row.username }}
+                                        </a>
+                                    </td>
+                                    <td>{{ '%02d:%02d:%02d' % (row.seconds // 3600, (row.seconds % 3600) // 60, row.seconds % 60) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="board-empty">Nobody visible here yet.</p>
+                {% endif %}
+
+                {% if hidden_me %}
+                    <p class="board-note">You are hidden from this board by your privacy settings.</p>
+                {% endif %}
+
+            </section>
+        </div>
 
     </main>
 

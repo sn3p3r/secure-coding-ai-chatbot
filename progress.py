@@ -907,6 +907,46 @@ def level_times(conn, course_slug, level_number, descending=False, viewer_id=Non
     ]
 
 
+def time_ranking(conn, viewer_id, limit=25):
+    """
+    Who has spent the most time in the Academy, as this viewer may see
+    it: people who switched leaderboard times off are skipped, "friends"
+    time visibility needs a friendship, "nobody" shows only to its owner,
+    and blocked pairs never see each other.
+    """
+    rows = conn.execute(
+        """
+        SELECT id, username, avatar, time_spent, privacy FROM users
+        WHERE time_spent > 0
+        ORDER BY time_spent DESC, username ASC
+        """
+    ).fetchall()
+
+    hidden = blocked_ids(conn, viewer_id)
+    friends = {person["id"] for person in friends_of(conn, viewer_id)}
+    ranking = []
+
+    for row in rows:
+        if row["id"] in hidden:
+            continue
+        settings = clean_privacy(_parse_json(row["privacy"]))
+        relation = "self" if row["id"] == viewer_id else ("friend" if row["id"] in friends else "other")
+        if relation != "self" and not settings["leaderboard_times"]:
+            continue
+        if not allowed(settings["show_time"], relation):
+            continue
+        ranking.append({
+            "user_id": row["id"],
+            "username": row["username"],
+            "avatar": row["avatar"],
+            "seconds": int(row["time_spent"] or 0),
+        })
+        if len(ranking) == limit:
+            break
+
+    return ranking
+
+
 # ---------------------------------------------------------
 # BLOCKS AND REPORTS
 # ---------------------------------------------------------

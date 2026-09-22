@@ -15,6 +15,7 @@ Challenge types (checked server-side in challenges.py):
 """
 
 from courses.common import DEFAULT_MAP
+from courses.banter import doctor_lines, guide_lines
 from courses.python_course import PYTHON_LEVELS
 from courses.cybersecurity import CYBER_LEVELS
 from courses.internet import INTERNET_LEVELS
@@ -280,6 +281,10 @@ def public_level(course, lvl, language=None, beams=None):
         "dialogue": lvl["dialogue"],
         "sign": lvl["sign"],
         "npcs": lvl["npcs"],
+        "banter": {
+            "doctor": doctor_lines(level_theme(course, lvl)),
+            "guide": guide_lines(lvl["guide"]),
+        },
         "challenge": public_challenge,
         "hints": lvl["hints"],
         "reward": lvl["reward"],

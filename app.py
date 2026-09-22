@@ -5,6 +5,7 @@ from functools import wraps
 import math
 import io
 import os
+import re
 import time
 from collections import Counter
 
@@ -68,6 +69,9 @@ except ImportError:  # the game still works; pictures are then stored as uploade
 
 # Reports about players are also appended here for the site owner.
 REPORTS_FILE = os.getenv("ACADEMY_REPORTS_FILE", os.path.join("data", "reports.jsonl"))
+
+# Usernames: plain letters, digits and underscores, 3 to 20 long.
+USERNAME_RE = re.compile(r"[A-Za-z0-9_]{3,20}")
 
 # Allowed values for the pixel character (validated server-side).
 CHARACTER_OPTIONS = {
@@ -340,11 +344,11 @@ def signup():
                 error="Please fill in all fields."
             )
 
-        # Username length
-        if len(username) < 3:
+        # Letters, digits and underscores only: no spaces, links, emoji or markup.
+        if not USERNAME_RE.fullmatch(username):
             return render_template(
                 "signup.html",
-                error="Username must be at least 3 characters."
+                error="Usernames can only use letters, numbers and underscores (3 to 20 characters)."
             )
 
         # Length, character classes and Shannon entropy
@@ -367,6 +371,14 @@ def signup():
         password_hash = generate_password_hash(password)
 
         conn = get_db()
+
+        # "Alice" and "alice" would look like the same person to others.
+        if conn.execute("SELECT 1 FROM users WHERE lower(username) = lower(?)", (username,)).fetchone():
+            conn.close()
+            return render_template(
+                "signup.html",
+                error="That username is already taken."
+            )
 
         try:
 
@@ -1276,6 +1288,7 @@ def leaderboard():
 
     conn = get_db()
     privacy = progress_db.get_privacy(conn, session["user_id"])
+    time_board = progress_db.time_ranking(conn, session["user_id"])
 
     if course is not None:
         raw = request.args.get("level", "")
@@ -1310,6 +1323,8 @@ def leaderboard():
         friends_only=friends_only,
         times=times,
         mine=mine,
+        time_board=time_board,
+        board="time" if request.args.get("board") == "time" else "levels",
         hidden_me=not privacy["leaderboard_times"],
         error=error,
     )
