@@ -70,7 +70,8 @@ a badge on FRIENDS. From another player's page you can block them (they
 can no longer request, search or open you) or report them (stored in
 the database and `data/reports.jsonl` for the site owner). The account
 section changes the password or deletes the account with everything in
-it. Five wrong passwords lock a username for five minutes. Uploaded
+it. Ten wrong passwords within five minutes lock a username for five
+minutes. Uploaded
 pictures are shrunk to a 256 px square when Pillow is installed. Every signed-in page ends with a short FAQ, and the
 SecureMentor tab peeks up from the bottom-right corner on each page load.
 

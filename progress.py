@@ -1004,8 +1004,8 @@ def pending_request_count(conn, user_id):
 
 # kind: (failed attempts allowed, counting window, lock length) in seconds
 LOGIN_LIMITS = {
-    "user": (5, 15 * 60, 5 * 60),      # one username from one address
-    "ip": (100, 15 * 60, 15 * 60),     # everything from one address (shared school networks are large)
+    "user": (10, 5 * 60, 5 * 60),      # ten wrong passwords for one username within five minutes
+    "ip": (150, 15 * 60, 15 * 60),     # everything from one address (shared school networks are large)
 }
 
 
