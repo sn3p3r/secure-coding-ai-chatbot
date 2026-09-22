@@ -9,7 +9,7 @@
    Controls:  A / D move    W / SPACE jump    E talk / read / use
               F or click = use the item in the selected slot
               Q drop the selected item    1-5 select slot
-              ENTER continue dialogue    M music on / off
+              ENTER continue dialogue    M sound on / off
 ========================================================= */
 
 (function () {
@@ -936,6 +936,7 @@
         const weapon = currentWeapon();
         player.attackTimer = 8;
         player.attackCooldown = weapon.cooldown;
+        if (window.academyAudio) academyAudio.sfx("slash");
 
         const box = attackBox();
 
@@ -4041,7 +4042,10 @@
     buttonStart.addEventListener("click", function () {
         overlayLesson.classList.add("hidden");
         gameWindow.focus();
-        if (window.academyAudio) academyAudio.play(LEVEL.music);
+        if (window.academyAudio) {
+            academyAudio.loadSfx(LEVEL.sfx);
+            academyAudio.play(LEVEL.music);
+        }
 
         if (SAVED_CHECKPOINT) {
             // Starting over throws the old save away.
@@ -4064,7 +4068,10 @@
         buttonResume.addEventListener("click", function () {
             overlayLesson.classList.add("hidden");
             gameWindow.focus();
-            if (window.academyAudio) academyAudio.play(LEVEL.music);
+            if (window.academyAudio) {
+                academyAudio.loadSfx(LEVEL.sfx);
+                academyAudio.play(LEVEL.music);
+            }
             resumeLevel();
         });
     }

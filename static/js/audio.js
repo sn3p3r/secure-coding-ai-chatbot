@@ -2,8 +2,9 @@
    MUSIC
    One track per level (LEVEL.music from the server): it starts on the
    START / RESUME click (browsers only allow sound after a click),
-   plays once, and loops on the obelisk levels. The ♪ button and the
-   M key switch it off; the choice is kept in localStorage.
+   plays once, and loops on the obelisk levels. Short effects (LEVEL.sfx)
+   are decoded once and replayed. The ♪ button and the M key switch all
+   sound off; the choice is kept in localStorage.
 ========================================================= */
 
 window.academyAudio = (function () {
@@ -20,6 +21,44 @@ window.academyAudio = (function () {
         if (!nowPlaying) return;
         nowPlaying.textContent = on && title ? "\u266a " + title : "";
         nowPlaying.hidden = !(on && title);
+    }
+
+    /* ---- sound effects: decoded once, replayed through Web Audio ---- */
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    let context = null;
+    const clips = {};           // name -> AudioBuffer (or an <audio> element fallback)
+    let sfxFiles = {};
+
+    function loadSfx(files) {
+        sfxFiles = files || {};
+        if (!AudioContextClass) return;
+        if (!context) context = new AudioContextClass();
+        Object.keys(sfxFiles).forEach((name) => {
+            fetch(sfxFiles[name])
+                .then((response) => response.arrayBuffer())
+                .then((bytes) => context.decodeAudioData(bytes))
+                .then((buffer) => { clips[name] = buffer; })
+                .catch(() => {});
+        });
+    }
+
+    function sfx(name) {
+        if (!enabled || !sfxFiles[name]) return;
+        if (context && clips[name]) {
+            if (context.state === "suspended") context.resume().catch(() => {});
+            const source = context.createBufferSource();
+            source.buffer = clips[name];
+            const gain = context.createGain();
+            gain.gain.value = 0.8;
+            source.connect(gain).connect(context.destination);
+            source.start(0);
+            return;
+        }
+        // Fallback (no Web Audio, or the clip is still loading)
+        const element = new Audio(sfxFiles[name]);
+        element.volume = 0.8;
+        safePlay(element);
     }
 
     let enabled = true;
@@ -46,7 +85,7 @@ window.academyAudio = (function () {
         if (!button) return;
         button.classList.toggle("is-off", !enabled);
         button.setAttribute("aria-pressed", enabled ? "true" : "false");
-        button.title = enabled ? "Music on (M to mute)" : "Music off (M to unmute)";
+        button.title = enabled ? "Sound on (M to mute)" : "Sound off (M to unmute)";
     }
 
     function load(track) {
@@ -126,6 +165,7 @@ window.academyAudio = (function () {
     // Called from the START / RESUME click: the first call on a page starts the track.
     function play(track) {
         load(track);
+        if (context && context.state === "suspended") context.resume().catch(() => {});
         if (requested) return;
         requested = true;
         resume();
@@ -163,6 +203,6 @@ window.academyAudio = (function () {
 
     paint();
 
-    return { play, fadeOut, toggle, bossStart, bossEnd, isOn: () => enabled };
+    return { play, fadeOut, toggle, bossStart, bossEnd, loadSfx, sfx, isOn: () => enabled };
 
 })();

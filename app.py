@@ -70,6 +70,10 @@ except ImportError:  # the game still works; pictures are then stored as uploade
 # Reports about players are also appended here for the site owner.
 REPORTS_FILE = os.getenv("ACADEMY_REPORTS_FILE", os.path.join("data", "reports.jsonl"))
 
+# Browsers want audio/mp4 for .m4a; Python's guess is audio/mp4a-latm.
+import mimetypes
+mimetypes.add_type("audio/mp4", ".m4a")
+
 # Usernames: plain letters, digits and underscores, 3 to 20 long.
 USERNAME_RE = re.compile(r"[A-Za-z0-9_]{3,20}")
 

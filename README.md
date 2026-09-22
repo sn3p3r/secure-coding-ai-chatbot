@@ -48,7 +48,7 @@ git-ignored because it holds user accounts.
 | `Q`            | drop the selected item              |
 | `1` - `5`      | select inventory slot               |
 | `Enter`        | next dialogue line                  |
-| `M`            | music on / off                      |
+| `M`            | sound on / off (music + effects)    |
 
 Login → Home → choose a course → create your character → play. Each
 course page shows the section map on the left (current level in bold),
@@ -96,9 +96,13 @@ overrides the table. The track starts on the START / RESUME click and
 plays once (bosses and obelisks loop). The ♪ button or the M key
 mutes it (remembered per device); a faint "now playing" line next to
 the level timer can be switched off under PROFILE › SETTINGS & PRIVACY.
-Credits appear in the CREDITS tab of the footer and in
-`static/audio/CREDITS.md`. All tracks are by Kevin MacLeod
-(incompetech.com), used under CC BY 4.0.
+Sound effects (`curriculum.SFX`, `static/audio/sfx/`) are decoded once
+and replayed; the blade slice on every swing is by Artninja on
+Freesound. Credits appear in the CREDITS tab of the footer and in
+`static/audio/CREDITS.md`. All music is by Kevin MacLeod
+(incompetech.com); everything is used under CC BY 4.0. The tracks are
+stored as AAC 96 kbps `.m4a` (about 3 MB each); re-encode new ones with
+`afconvert -f m4af -d aac -b 96000 -s 2 in.mp3 out.m4a` on a Mac.
 
 `python3 tools/grant_all.py <username>` marks every level complete and
 awards every achievement for a demo account (`--revoke` undoes it).
