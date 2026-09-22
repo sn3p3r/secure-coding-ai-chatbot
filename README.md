@@ -90,15 +90,16 @@ key to the file and its credit, and `courses/soundtrack.py` says which
 level plays what: "Ossuary 1 - A Beginning" for beginnings, quieter
 fights and (looped) every obelisk, "Vibing Over Venus" on calm levels,
 "Blobby Samba" where you fight bugs and viruses, "Rhinoceros" the first
-time you enter each course's lab, and "Cretaceous Dawn" taking over the
-moment a boss is on screen. A level's own `music` / `boss_music` field
+time you enter each course's lab, "Twisting" in a few lab levels, and
+"Cretaceous Dawn" taking over the moment a boss is on screen. No two
+levels in a row share a track. A level's own `music` / `boss_music` field
 overrides the table. The track starts on the START / RESUME click and
 plays once (bosses and obelisks loop). The ♪ button or the M key
 mutes it (remembered per device); a faint "now playing" line next to
 the level timer can be switched off under PROFILE › SETTINGS & PRIVACY.
 Sound effects (`curriculum.SFX`, `static/audio/sfx/`) are decoded once
-and replayed; the blade slice on every swing is by Artninja on
-Freesound. Credits appear in the CREDITS tab of the footer and in
+and replayed; the blade slice on every swing is by Artninja and the
+crunch when candy is eaten is by theplax, both on Freesound. Credits appear in the CREDITS tab of the footer and in
 `static/audio/CREDITS.md`. All music is by Kevin MacLeod
 (incompetech.com); everything is used under CC BY 4.0. The tracks are
 stored as AAC 96 kbps `.m4a` (about 3 MB each); re-encode new ones with

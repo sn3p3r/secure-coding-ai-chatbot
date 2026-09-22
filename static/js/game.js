@@ -115,6 +115,7 @@
             overlay.classList.add("hidden");
             panel.classList.remove("hidden");
             objective.textContent = LEVEL.goal;
+            if (window.academyAudio) academyAudio.loadSfx(LEVEL.sfx);   // the click unlocks audio
             try {
                 await fetch("/api/level/start", {
                     method: "POST",
@@ -149,6 +150,7 @@
                 }
                 finalElapsed = data.elapsed;
                 panel.classList.add("hidden");
+                if (window.academyAudio) academyAudio.sfx("win");
                 showQuizResult(data);
             } catch (error) {
                 feedback.textContent = "Connection lost. Try again.";
@@ -846,6 +848,7 @@
         }
         takeItem(ITEM_CANDY);
         player.hp = Math.min(MAX_HP, player.hp + CANDY_HEAL);
+        if (window.academyAudio) academyAudio.sfx("crunch");
         renderHearts();
         burst(player.x + 4, player.y + 4, "#ff4fa3", 12);
         toast("Candy eaten. +" + CANDY_HEAL + " health");
@@ -2284,8 +2287,12 @@
         setObjective("LEVEL COMPLETE!");
         overlayDialogue.classList.add("hidden");
 
-        // The obelisk keeps its music; everywhere else the track fades with the level.
-        if (window.academyAudio && !LEVEL.obelisk) academyAudio.fadeOut(1800);
+        // The obelisk keeps its music; everywhere else the track fades with the level
+        // and the little win jingle plays.
+        if (window.academyAudio && !LEVEL.obelisk) {
+            academyAudio.fadeOut(1800);
+            academyAudio.sfx("win");
+        }
 
         // Let the confetti and the little hop play before the card slides in.
         setTimeout(renderCompleteCard, 900);
